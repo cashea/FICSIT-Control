@@ -4,6 +4,7 @@ import { getConsumersForCircuit } from "../../utils/power";
 import { SemicircleGauge } from "./SemicircleGauge";
 import { BatteryDetailPanel } from "./BatteryDetailPanel";
 import { CircuitMetricsCards } from "./CircuitMetricsCards";
+import { PowerHistoryChart } from "./PowerHistoryChart";
 import { PowerSankeyDiagram } from "./PowerSankeyDiagram";
 import { GeneratorListByType } from "./GeneratorListByType";
 import { ConsumerBreakdown } from "./ConsumerBreakdown";
@@ -15,7 +16,7 @@ export function CircuitDetail({
   circuitId: number;
   onBack: () => void;
 }) {
-  const { powerCircuits, generators, machines } = useFactoryStore();
+  const { powerCircuits, powerHistory, generators, machines } = useFactoryStore();
 
   const circuit = powerCircuits.find((c) => c.CircuitGroupID === circuitId);
   const circuitGenerators = generators.filter((g) => g.CircuitID === circuitId);
@@ -74,6 +75,9 @@ export function CircuitDetail({
         <BatteryDetailPanel circuit={circuit} />
         <CircuitMetricsCards circuit={circuit} />
       </div>
+
+      {/* Power history chart */}
+      <PowerHistoryChart history={powerHistory[circuitId] ?? []} />
 
       {/* Sankey diagram */}
       <PowerSankeyDiagram

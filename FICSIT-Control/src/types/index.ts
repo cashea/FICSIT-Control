@@ -22,3 +22,12 @@ export type {
   FRMGenerator,
   FRMGeneratorFuel,
 } from "./frm";
+export type {
+  ControlFeatureMap,
+  CapabilitiesResponse,
+  CommandType,
+  CommandStatus,
+  CommandResponse,
+  CommandStatusEvent,
+  CommandLogEntry,
+} from "./control";

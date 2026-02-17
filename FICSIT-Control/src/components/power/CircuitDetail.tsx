@@ -1,5 +1,7 @@
-import { ChevronLeft } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, Zap, Loader2, Check, X } from "lucide-react";
 import { useFactoryStore } from "../../stores/factory-store";
+import { useControlStore } from "../../stores/control-store";
 import { getConsumersForCircuit } from "../../utils/power";
 import { SemicircleGauge } from "./SemicircleGauge";
 import { BatteryDetailPanel } from "./BatteryDetailPanel";
@@ -61,6 +63,7 @@ export function CircuitDetail({
             FUSE TRIPPED
           </span>
         )}
+        {circuit.FuseTriggered && <ResetFuseButton circuitId={circuitId} />}
       </div>
 
       {/* Gauge + Battery + Metrics row */}
@@ -91,5 +94,38 @@ export function CircuitDetail({
         <ConsumerBreakdown consumers={consumers} />
       </div>
     </div>
+  );
+}
+
+function ResetFuseButton({ circuitId }: { circuitId: number }) {
+  const { submitCommand, isFeatureAvailable, connectionStatus } = useControlStore();
+  const [state, setState] = useState<"idle" | "submitting" | "success" | "error">("idle");
+
+  if (connectionStatus !== "connected" || !isFeatureAvailable("resetFuse")) {
+    return null;
+  }
+
+  const handleReset = async () => {
+    setState("submitting");
+    const commandId = await submitCommand("RESET_FUSE", { circuitId });
+    setState(commandId ? "success" : "error");
+    setTimeout(() => setState("idle"), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleReset}
+      disabled={state === "submitting"}
+      className="flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors bg-[var(--color-satisfactory-orange)]/20 text-[var(--color-satisfactory-orange)] border border-[var(--color-satisfactory-orange)]/30 hover:bg-[var(--color-satisfactory-orange)]/30 disabled:opacity-50"
+    >
+      {state === "submitting" && <Loader2 className="w-3 h-3 animate-spin" />}
+      {state === "success" && <Check className="w-3 h-3 text-[var(--color-connected)]" />}
+      {state === "error" && <X className="w-3 h-3 text-[var(--color-disconnected)]" />}
+      {state === "idle" && <Zap className="w-3 h-3" />}
+      {state === "idle" && "Reset Fuse"}
+      {state === "submitting" && "Resetting..."}
+      {state === "success" && "Reset Sent"}
+      {state === "error" && "Failed"}
+    </button>
   );
 }

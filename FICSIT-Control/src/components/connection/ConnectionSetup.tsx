@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Plug, Unplug, Loader2 } from "lucide-react";
+import { Plug, Unplug, Loader2, Shield } from "lucide-react";
 import { useConnectionStore } from "../../stores/connection-store";
+import { useControlStore } from "../../stores/control-store";
+import { RecentCommands } from "../control/RecentCommands";
 
 export function ConnectionSetup() {
   const { host, port, status, error, setHost, setPort, connect, disconnect } =
@@ -18,18 +20,123 @@ export function ConnectionSetup() {
   const isConnected = status === "connected";
 
   return (
+    <div className="space-y-4">
+      {/* FRM Connection */}
+      <div className="p-4 bg-[var(--color-satisfactory-panel)] rounded-lg border border-[var(--color-satisfactory-border)]">
+        <h3 className="text-sm font-semibold mb-3 text-[var(--color-satisfactory-text)]">
+          FRM Connection
+        </h3>
+        <p className="text-xs text-[var(--color-satisfactory-text-dim)] mb-3">
+          Connect to FICSIT Remote Monitoring mod. Start FRM in-game with{" "}
+          <code className="bg-[var(--color-satisfactory-dark)] px-1 rounded">
+            /frm http start
+          </code>
+        </p>
+
+        <div className="flex gap-2 mb-3">
+          <input
+            type="text"
+            value={localHost}
+            onChange={(e) => setLocalHost(e.target.value)}
+            placeholder="localhost"
+            disabled={isConnected || isConnecting}
+            className="flex-1 px-3 py-1.5 text-sm bg-[var(--color-satisfactory-dark)] border border-[var(--color-satisfactory-border)] rounded text-[var(--color-satisfactory-text)] placeholder:text-[var(--color-satisfactory-text-dim)] disabled:opacity-50"
+          />
+          <input
+            type="text"
+            value={localPort}
+            onChange={(e) => setLocalPort(e.target.value)}
+            placeholder="8080"
+            disabled={isConnected || isConnecting}
+            className="w-20 px-3 py-1.5 text-sm bg-[var(--color-satisfactory-dark)] border border-[var(--color-satisfactory-border)] rounded text-[var(--color-satisfactory-text)] placeholder:text-[var(--color-satisfactory-text-dim)] disabled:opacity-50"
+          />
+        </div>
+
+        {isConnected ? (
+          <button
+            onClick={disconnect}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-[var(--color-disconnected)]/20 text-[var(--color-disconnected)] border border-[var(--color-disconnected)]/30 rounded hover:bg-[var(--color-disconnected)]/30 transition-colors"
+          >
+            <Unplug className="w-4 h-4" />
+            Disconnect
+          </button>
+        ) : (
+          <button
+            onClick={handleConnect}
+            disabled={isConnecting}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-[var(--color-satisfactory-orange)]/20 text-[var(--color-satisfactory-orange)] border border-[var(--color-satisfactory-orange)]/30 rounded hover:bg-[var(--color-satisfactory-orange)]/30 transition-colors disabled:opacity-50"
+          >
+            {isConnecting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Plug className="w-4 h-4" />
+            )}
+            {isConnecting ? "Connecting..." : "Connect"}
+          </button>
+        )}
+
+        {error && (
+          <p className="mt-2 text-xs text-[var(--color-disconnected)]">{error}</p>
+        )}
+      </div>
+
+      {/* Control Mod Connection */}
+      <ControlModSection />
+
+      {/* Recent Commands */}
+      <RecentCommands />
+    </div>
+  );
+}
+
+function ControlModSection() {
+  const {
+    controlHost,
+    controlPort,
+    token,
+    connectionStatus,
+    error,
+    capabilities,
+    setControlHost,
+    setControlPort,
+    setToken,
+    connect,
+    disconnect,
+  } = useControlStore();
+
+  const [localHost, setLocalHost] = useState(controlHost);
+  const [localPort, setLocalPort] = useState(controlPort.toString());
+  const [localToken, setLocalToken] = useState(token);
+
+  const handleConnect = async () => {
+    setControlHost(localHost);
+    setControlPort(parseInt(localPort, 10) || 9090);
+    setToken(localToken);
+    await connect();
+  };
+
+  const isConnecting = connectionStatus === "connecting";
+  const isConnected = connectionStatus === "connected";
+
+  const featureCount = capabilities
+    ? Object.values(capabilities.features).filter(Boolean).length
+    : 0;
+
+  return (
     <div className="p-4 bg-[var(--color-satisfactory-panel)] rounded-lg border border-[var(--color-satisfactory-border)]">
-      <h3 className="text-sm font-semibold mb-3 text-[var(--color-satisfactory-text)]">
-        FRM Connection
+      <h3 className="text-sm font-semibold mb-3 text-[var(--color-satisfactory-text)] flex items-center gap-2">
+        <Shield className="w-4 h-4" />
+        Control Mod
+        <span className="text-xs font-normal text-[var(--color-satisfactory-text-dim)]">
+          (Optional)
+        </span>
       </h3>
       <p className="text-xs text-[var(--color-satisfactory-text-dim)] mb-3">
-        Connect to FICSIT Remote Monitoring mod. Start FRM in-game with{" "}
-        <code className="bg-[var(--color-satisfactory-dark)] px-1 rounded">
-          /frm http start
-        </code>
+        Connect to companion control mod for write commands (reset fuse, toggle
+        buildings, etc).
       </p>
 
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-2 mb-2">
         <input
           type="text"
           value={localHost}
@@ -42,20 +149,37 @@ export function ConnectionSetup() {
           type="text"
           value={localPort}
           onChange={(e) => setLocalPort(e.target.value)}
-          placeholder="8080"
+          placeholder="9090"
           disabled={isConnected || isConnecting}
           className="w-20 px-3 py-1.5 text-sm bg-[var(--color-satisfactory-dark)] border border-[var(--color-satisfactory-border)] rounded text-[var(--color-satisfactory-text)] placeholder:text-[var(--color-satisfactory-text-dim)] disabled:opacity-50"
         />
       </div>
 
+      <input
+        type="password"
+        value={localToken}
+        onChange={(e) => setLocalToken(e.target.value)}
+        placeholder="Auth token"
+        disabled={isConnected || isConnecting}
+        className="w-full px-3 py-1.5 text-sm bg-[var(--color-satisfactory-dark)] border border-[var(--color-satisfactory-border)] rounded text-[var(--color-satisfactory-text)] placeholder:text-[var(--color-satisfactory-text-dim)] disabled:opacity-50 mb-3"
+      />
+
       {isConnected ? (
-        <button
-          onClick={disconnect}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-[var(--color-disconnected)]/20 text-[var(--color-disconnected)] border border-[var(--color-disconnected)]/30 rounded hover:bg-[var(--color-disconnected)]/30 transition-colors"
-        >
-          <Unplug className="w-4 h-4" />
-          Disconnect
-        </button>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[var(--color-connected)]">Connected</span>
+            <span className="text-[var(--color-satisfactory-text-dim)]">
+              {featureCount} feature{featureCount !== 1 ? "s" : ""} available
+            </span>
+          </div>
+          <button
+            onClick={disconnect}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-[var(--color-disconnected)]/20 text-[var(--color-disconnected)] border border-[var(--color-disconnected)]/30 rounded hover:bg-[var(--color-disconnected)]/30 transition-colors"
+          >
+            <Unplug className="w-4 h-4" />
+            Disconnect Control
+          </button>
+        </div>
       ) : (
         <button
           onClick={handleConnect}
@@ -65,9 +189,9 @@ export function ConnectionSetup() {
           {isConnecting ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <Plug className="w-4 h-4" />
+            <Shield className="w-4 h-4" />
           )}
-          {isConnecting ? "Connecting..." : "Connect"}
+          {isConnecting ? "Connecting..." : "Connect Control Mod"}
         </button>
       )}
 

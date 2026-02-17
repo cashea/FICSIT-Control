@@ -127,12 +127,12 @@ export function PowerHistoryChart({ history: raw }: { history: PowerSnapshot[] }
                   {ts ? formatTime(ts) : `${offsetSec.toFixed(0)}s`}
                 </div>
                 {slice.points.map((p) => (
-                  <div key={p.serieId} className="flex items-center gap-2">
+                  <div key={p.seriesId} className="flex items-center gap-2">
                     <span
                       className="w-2 h-2 rounded-full inline-block"
-                      style={{ backgroundColor: p.serieColor }}
+                      style={{ backgroundColor: p.seriesColor }}
                     />
-                    <span style={{ color: p.serieColor }}>{p.serieId}</span>
+                    <span style={{ color: p.seriesColor }}>{p.seriesId}</span>
                     <span className="text-[#e6edf3] ml-auto pl-3">
                       {(p.data.y as number).toFixed(1)} MW
                     </span>

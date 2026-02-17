@@ -14,6 +14,8 @@ interface PlannerState {
   clearRecipeOverride: (itemId: string) => void;
   setSolverOutput: (output: SolverOutput | null) => void;
   setBatchTimeMinutes: (mins: number | null) => void;
+  importTargets: (targets: ProductionTarget[], overrides: RecipeSelection) => void;
+  mergeTargets: (targets: ProductionTarget[], overrides: RecipeSelection) => void;
   reset: () => void;
 }
 
@@ -58,6 +60,35 @@ export const usePlannerStore = create<PlannerState>()((set) => ({
           : t,
       ),
     })),
+
+  importTargets: (targets, overrides) =>
+    set({
+      targets,
+      recipeOverrides: overrides,
+      solverOutput: null,
+    }),
+
+  mergeTargets: (newTargets, newOverrides) =>
+    set((state) => {
+      const mergedMap = new Map<string, ProductionTarget>();
+      for (const t of state.targets) mergedMap.set(t.itemId, { ...t });
+      for (const t of newTargets) {
+        const existing = mergedMap.get(t.itemId);
+        if (existing) {
+          existing.ratePerMinute += t.ratePerMinute;
+          if (existing.inputValue != null && t.inputValue != null) {
+            existing.inputValue += t.inputValue;
+          }
+        } else {
+          mergedMap.set(t.itemId, { ...t });
+        }
+      }
+      return {
+        targets: Array.from(mergedMap.values()),
+        recipeOverrides: { ...state.recipeOverrides, ...newOverrides },
+        solverOutput: null,
+      };
+    }),
 
   reset: () =>
     set({

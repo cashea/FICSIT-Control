@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Factory, ArrowUpDown } from "lucide-react";
+import { ChevronDown, ChevronRight, Factory, ArrowUpDown, Power } from "lucide-react";
 import { useFactoryStore } from "../../stores/factory-store";
+import { useControlStore } from "../../stores/control-store";
+import { ControlActionButton } from "../control/ControlActionButton";
 import type { FRMMachine } from "../../types";
 
 const MACHINE_LABELS: Record<string, string> = {
@@ -45,6 +47,8 @@ function MachineTypeGroup({
   const [expanded, setExpanded] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortAsc, setSortAsc] = useState(true);
+  const { connectionStatus, isFeatureAvailable } = useControlStore();
+  const hasControl = connectionStatus === "connected" && isFeatureAvailable("toggleBuilding");
 
   const label = MACHINE_LABELS[type] || type;
 
@@ -127,6 +131,7 @@ function MachineTypeGroup({
               Status
               {sortKey === "status" && <ArrowUpDown className="w-3 h-3" />}
             </button>
+            {hasControl && <span className="w-16 text-right">Control</span>}
           </div>
 
           {sorted.map((machine, i) => {
@@ -167,6 +172,17 @@ function MachineTypeGroup({
                 >
                   {machine.IsProducing ? "Running" : machine.IsPaused ? "Paused" : "Idle"}
                 </span>
+                {hasControl && (
+                  <span className="w-16 flex justify-end">
+                    <ControlActionButton
+                      commandType="TOGGLE_BUILDING"
+                      payload={{ buildingId: machine.ClassName, enabled: machine.IsPaused }}
+                      label={machine.IsPaused ? "Enable" : "Disable"}
+                      icon={<Power className="w-3 h-3" />}
+                      feature="toggleBuilding"
+                    />
+                  </span>
+                )}
               </div>
             );
           })}

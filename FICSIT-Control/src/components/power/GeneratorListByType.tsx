@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Power } from "lucide-react";
 import type { FRMGenerator } from "../../types";
+import { ControlActionButton } from "../control/ControlActionButton";
 import {
   groupGeneratorsByCategory,
   GENERATOR_COLORS,
@@ -36,6 +37,22 @@ function GeneratorGroupSection({ group }: { group: GeneratorGroup }) {
           {formatMW(group.totalMW)}
         </span>
       </button>
+      <div className="flex items-center gap-2 px-4 pb-1" onClick={(e) => e.stopPropagation()}>
+        <ControlActionButton
+          commandType="TOGGLE_GENERATOR_GROUP"
+          payload={{ groupId: group.category, enabled: false }}
+          label="Disable Group"
+          icon={<Power className="w-3 h-3" />}
+          feature="toggleGeneratorGroup"
+        />
+        <ControlActionButton
+          commandType="TOGGLE_GENERATOR_GROUP"
+          payload={{ groupId: group.category, enabled: true }}
+          label="Enable Group"
+          icon={<Power className="w-3 h-3" />}
+          feature="toggleGeneratorGroup"
+        />
+      </div>
 
       {expanded && (
         <div className="border-t border-[var(--color-satisfactory-border)]">

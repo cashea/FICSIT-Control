@@ -2,8 +2,10 @@ import { Calculator, RotateCcw } from "lucide-react";
 import { usePlannerStore } from "../../stores/planner-store";
 import { solve } from "../../solver";
 import { TargetInputSection } from "./TargetInputSection";
+import { FactoryImportButton } from "./FactoryImportButton";
 import { RecipeOverrides } from "./RecipeOverrides";
 import { SolverResults } from "./SolverResults";
+import { ApplyPlanPanel } from "./ApplyPlanPanel";
 
 export function PlannerView() {
   const { targets, recipeOverrides, setSolverOutput, solverOutput, reset } =
@@ -17,6 +19,8 @@ export function PlannerView() {
   return (
     <div className="space-y-6">
       <TargetInputSection />
+
+      <FactoryImportButton />
 
       <RecipeOverrides />
 
@@ -42,6 +46,8 @@ export function PlannerView() {
       </div>
 
       <SolverResults />
+
+      <ApplyPlanPanel />
     </div>
   );
 }

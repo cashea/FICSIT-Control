@@ -69,7 +69,7 @@ export function AssetSummaryCards() {
   const anyFuse = powerCircuits.some((c) => c.FuseTriggered);
 
   const totalSlots = inventory.reduce(
-    (s, c) => s + c.Inventory.reduce((a, item) => a + item.MaxAmount, 0),
+    (s, c) => s + c.Inventory.length,
     0
   );
 

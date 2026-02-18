@@ -6,9 +6,14 @@ import type { FRMStorageContainer } from "../../types";
 type SortKey = "name" | "fullness" | "items";
 
 function getFullness(container: FRMStorageContainer): number {
-  const totalAmount = container.Inventory.reduce((s, i) => s + i.Amount, 0);
-  const totalMax = container.Inventory.reduce((s, i) => s + i.MaxAmount, 0);
-  return totalMax > 0 ? (totalAmount / totalMax) * 100 : 0;
+  const slotsWithItems = container.Inventory.filter((i) => i.MaxAmount > 0);
+  if (slotsWithItems.length === 0) return 0;
+  
+  const totalFullness = slotsWithItems.reduce(
+    (sum, item) => sum + (item.Amount / item.MaxAmount),
+    0
+  );
+  return (totalFullness / slotsWithItems.length) * 100;
 }
 
 function sortContainers(

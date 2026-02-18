@@ -46,7 +46,7 @@ export function CircuitDetail({
       : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col flex-1 min-h-0 gap-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <button
@@ -66,32 +66,35 @@ export function CircuitDetail({
         {circuit.FuseTriggered && <ResetFuseButton circuitId={circuitId} />}
       </div>
 
-      {/* Gauge + Battery + Metrics row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="flex justify-center">
-          <SemicircleGauge
-            value={utilization}
-            max={1}
-            fuseTripped={circuit.FuseTriggered}
-          />
+      {/* Scrollable content */}
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-6">
+        {/* Gauge + Battery + Metrics row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="flex justify-center">
+            <SemicircleGauge
+              value={utilization}
+              max={1}
+              fuseTripped={circuit.FuseTriggered}
+            />
+          </div>
+          <BatteryDetailPanel circuit={circuit} />
+          <CircuitMetricsCards circuit={circuit} />
         </div>
-        <BatteryDetailPanel circuit={circuit} />
-        <CircuitMetricsCards circuit={circuit} />
-      </div>
 
-      {/* Power history chart */}
-      <PowerHistoryChart history={powerHistory[circuitId] ?? []} />
+        {/* Power history chart */}
+        <PowerHistoryChart history={powerHistory[circuitId] ?? []} />
 
-      {/* Sankey diagram */}
-      <PowerSankeyDiagram
-        generators={circuitGenerators}
-        consumers={consumers}
-      />
+        {/* Sankey diagram */}
+        <PowerSankeyDiagram
+          generators={circuitGenerators}
+          consumers={consumers}
+        />
 
-      {/* Generators + Consumers side by side on large screens */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <GeneratorListByType generators={circuitGenerators} />
-        <ConsumerBreakdown consumers={consumers} />
+        {/* Generators + Consumers side by side on large screens */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <GeneratorListByType generators={circuitGenerators} />
+          <ConsumerBreakdown consumers={consumers} />
+        </div>
       </div>
     </div>
   );

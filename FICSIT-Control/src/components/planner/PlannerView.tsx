@@ -17,7 +17,7 @@ export function PlannerView() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col flex-1 min-h-0 gap-6">
       <TargetInputSection />
 
       <FactoryImportButton />
@@ -45,9 +45,11 @@ export function PlannerView() {
         )}
       </div>
 
-      <SolverResults />
-
-      <ApplyPlanPanel />
+      {/* Scrollable results */}
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-6">
+        <SolverResults />
+        <ApplyPlanPanel />
+      </div>
     </div>
   );
 }

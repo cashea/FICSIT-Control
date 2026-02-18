@@ -12,15 +12,17 @@ export function PowerOverview({
   const { powerCircuits, generators } = useFactoryStore();
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col flex-1 min-h-0 gap-6">
       <FuseAlertBanner circuits={powerCircuits} />
       <PowerSummaryCards circuits={powerCircuits} />
       <GenerationMixBar generators={generators} />
-      <CircuitCardGrid
-        circuits={powerCircuits}
-        generators={generators}
-        onSelectCircuit={onSelectCircuit}
-      />
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <CircuitCardGrid
+          circuits={powerCircuits}
+          generators={generators}
+          onSelectCircuit={onSelectCircuit}
+        />
+      </div>
     </div>
   );
 }

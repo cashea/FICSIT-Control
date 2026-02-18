@@ -45,7 +45,7 @@ function App() {
             {activeTab === "ai" ? (
               <AIChat />
             ) : (
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 flex flex-col min-h-0 p-6">
                 {activeTab === "status" && <FactoryStatus />}
                 {activeTab === "assets" && <AssetsView />}
                 {activeTab === "dashboard" && <DashboardView />}

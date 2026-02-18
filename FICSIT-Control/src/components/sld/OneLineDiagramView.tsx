@@ -12,7 +12,7 @@ export default function OneLineDiagramView() {
 
   if (status !== "connected") {
     return (
-      <div className="flex items-center justify-center h-64 text-[var(--color-satisfactory-text-dim)]">
+      <div className="flex-1 flex items-center justify-center text-[var(--color-satisfactory-text-dim)]">
         Connect to a Satisfactory server to view the one-line diagram.
       </div>
     );
@@ -20,10 +20,10 @@ export default function OneLineDiagramView() {
 
   if (focusedCircuit !== null) {
     return (
-      <div>
+      <div className="flex flex-col flex-1 min-h-0">
         <button
           onClick={() => setFocusedCircuit(null)}
-          className="inline-flex items-center gap-1.5 mb-4 px-3 py-1.5 text-sm rounded-lg border border-[var(--color-satisfactory-border)] text-[var(--color-satisfactory-text-dim)] hover:text-[var(--color-satisfactory-text)] hover:bg-[var(--color-satisfactory-panel)] transition-colors"
+          className="inline-flex items-center gap-1.5 mb-4 px-3 py-1.5 text-sm rounded-lg border border-[var(--color-satisfactory-border)] text-[var(--color-satisfactory-text-dim)] hover:text-[var(--color-satisfactory-text)] hover:bg-[var(--color-satisfactory-panel)] transition-colors shrink-0"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to diagram
@@ -37,7 +37,7 @@ export default function OneLineDiagramView() {
   }
 
   return (
-    <div className="h-[calc(100vh-140px)]">
+    <div className="flex-1 min-h-0">
       <SingleLineDiagram onCircuitSelect={setFocusedCircuit} />
     </div>
   );

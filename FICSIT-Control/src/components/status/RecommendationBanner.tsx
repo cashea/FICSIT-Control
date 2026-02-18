@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Lightbulb, RefreshCw, Loader2, X, Settings, MessageCircleReply } from "lucide-react";
 import { useRecommendation } from "../../hooks/useRecommendation";
 import { useUIStore } from "../../stores/ui-store";
 import { useChatStore } from "../../stores/chat-store";
+
+const REPLY_MESSAGE_TEMPLATE = (text: string) => `Regarding your recommendation: "${text}"\n\n`;
 
 export function RecommendationBanner() {
   const { status, text, error, lastUpdated, isAIConfigured, isFactoryConnected, refresh } =
@@ -11,13 +13,12 @@ export function RecommendationBanner() {
   const setDraftMessage = useChatStore((s) => s.setDraftMessage);
   const [dismissedAt, setDismissedAt] = useState<number | null>(null);
 
-  const handleReplyToAI = () => {
+  const handleReplyToAI = useCallback(() => {
     if (text) {
-      const message = `Regarding your recommendation: "${text}"\n\n`;
-      setDraftMessage(message);
+      setDraftMessage(REPLY_MESSAGE_TEMPLATE(text));
       setActiveTab("ai");
     }
-  };
+  }, [text, setDraftMessage, setActiveTab]);
 
   if (!isAIConfigured) {
     return (

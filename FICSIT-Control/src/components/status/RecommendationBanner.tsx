@@ -1,13 +1,23 @@
 import { useState } from "react";
-import { Lightbulb, RefreshCw, Loader2, X, Settings } from "lucide-react";
+import { Lightbulb, RefreshCw, Loader2, X, Settings, MessageCircleReply } from "lucide-react";
 import { useRecommendation } from "../../hooks/useRecommendation";
 import { useUIStore } from "../../stores/ui-store";
+import { useChatStore } from "../../stores/chat-store";
 
 export function RecommendationBanner() {
   const { status, text, error, lastUpdated, isAIConfigured, isFactoryConnected, refresh } =
     useRecommendation();
   const setActiveTab = useUIStore((s) => s.setActiveTab);
+  const setDraftMessage = useChatStore((s) => s.setDraftMessage);
   const [dismissedAt, setDismissedAt] = useState<number | null>(null);
+
+  const handleReplyToAI = () => {
+    if (text) {
+      const message = `Regarding your recommendation: "${text}"\n\n`;
+      setDraftMessage(message);
+      setActiveTab("ai");
+    }
+  };
 
   if (!isAIConfigured) {
     return (
@@ -59,6 +69,13 @@ export function RecommendationBanner() {
         )}
       </div>
       <div className="flex items-center gap-1 shrink-0">
+        <button
+          onClick={handleReplyToAI}
+          className="p-1.5 rounded hover:bg-[var(--color-satisfactory-border)] text-[var(--color-satisfactory-text-dim)] transition-colors"
+          title="Reply to AI"
+        >
+          <MessageCircleReply className="w-3.5 h-3.5" />
+        </button>
         <button
           onClick={refresh}
           disabled={status === "loading"}

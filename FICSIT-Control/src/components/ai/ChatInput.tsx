@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Send, Square, X, Image } from "lucide-react";
 import { useChatStore } from "../../stores/chat-store";
 import type { ImageAttachment } from "../../ai/types";
@@ -31,7 +31,24 @@ export function ChatInput() {
   const [input, setInput] = useState("");
   const [pendingImages, setPendingImages] = useState<ImageAttachment[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { sendMessage, isStreaming, stopStreaming } = useChatStore();
+  const { sendMessage, isStreaming, stopStreaming, draftMessage, setDraftMessage } = useChatStore();
+
+  // Apply draft message when it changes
+  useEffect(() => {
+    if (draftMessage !== null) {
+      // Use a microtask to avoid setState-in-render issues
+      Promise.resolve().then(() => {
+        setInput(draftMessage);
+        setDraftMessage(null);
+        // Auto-resize textarea
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+          textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 150) + "px";
+          textareaRef.current.focus();
+        }
+      });
+    }
+  }, [draftMessage, setDraftMessage]);
 
   const handleSend = useCallback(() => {
     const trimmed = input.trim();

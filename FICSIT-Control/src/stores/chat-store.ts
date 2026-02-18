@@ -19,6 +19,7 @@ interface ChatState {
   aiConnectionStatus: AIConnectionStatus;
   aiConnectionError: string | null;
   _abortController: AbortController | null;
+  draftMessage: string | null;
 
   setProviderConfig: (config: AIProviderConfig) => void;
   setProviderType: (type: AIProviderType) => void;
@@ -27,6 +28,7 @@ interface ChatState {
   clearMessages: () => void;
   clearError: () => void;
   testAIConnection: () => Promise<void>;
+  setDraftMessage: (message: string | null) => void;
 }
 
 let messageCounter = 0;
@@ -45,6 +47,7 @@ export const useChatStore = create<ChatState>()(
       aiConnectionStatus: "idle" as AIConnectionStatus,
       aiConnectionError: null,
       _abortController: null,
+      draftMessage: null,
 
       setProviderConfig: (config) => set({ providerConfig: config }),
 
@@ -192,6 +195,7 @@ export const useChatStore = create<ChatState>()(
 
       clearMessages: () => set({ messages: [], error: null }),
       clearError: () => set({ error: null }),
+      setDraftMessage: (message) => set({ draftMessage: message }),
     }),
     {
       name: "satisfactory-chat",

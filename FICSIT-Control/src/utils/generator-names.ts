@@ -21,15 +21,21 @@ export function getGeneratorTypeName(className: string): string {
 }
 
 /**
+ * Clean up resource names by removing common prefixes and suffixes
+ */
+function cleanResourceName(name: string): string {
+  return name.replace(/^Desc_/, "").replace(/_C$/, "");
+}
+
+/**
  * Get the current fuel name from the generator's available fuels
  * Uses the first available fuel, or the category as fallback
  */
 export function getCurrentFuelName(generator: FRMGenerator): string {
   // If there are available fuels, use the first one's name
   if (generator.AvailableFuel && generator.AvailableFuel.length > 0) {
-    // Clean up the fuel name (remove "Desc_" prefix and "_C" suffix if present)
     const fuelName = generator.AvailableFuel[0].Name;
-    return fuelName.replace(/^Desc_/, "").replace(/_C$/, "");
+    return cleanResourceName(fuelName);
   }
   
   // Fallback to generator category (Coal, Fuel, Nuclear, etc.)

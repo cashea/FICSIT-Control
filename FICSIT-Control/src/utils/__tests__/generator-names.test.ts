@@ -123,7 +123,7 @@ describe("generator-names", () => {
       expect(getGeneratorDisplayName(gen, "Auxiliary")).toBe("BiomassBurner Leaves Auxiliary");
     });
 
-    it("should handle fuel station with uranium", () => {
+    it("should handle nuclear generator with uranium", () => {
       const gen = createMockGenerator("Build_GeneratorNuclear_C", [
         { Name: "UraniumCell", ClassName: "Desc_NuclearFuelRod_C", EnergyValue: 500000 },
       ]);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Power } from "lucide-react";
+import { ChevronDown, ChevronRight, Power, Pencil, Check, X } from "lucide-react";
 import type { FRMGenerator } from "../../types";
 import { ControlActionButton } from "../control/ControlActionButton";
 import {
@@ -8,6 +8,8 @@ import {
   type GeneratorGroup,
 } from "../../utils/power";
 import { formatMW } from "../../utils/format";
+import { useGeneratorNamesStore } from "../../stores/generator-names-store";
+import { getGeneratorDisplayName } from "../../utils/generator-names";
 
 function GeneratorGroupSection({ group }: { group: GeneratorGroup }) {
   const [expanded, setExpanded] = useState(false);
@@ -83,12 +85,71 @@ function GeneratorRow({ gen }: { gen: FRMGenerator }) {
   const isOverclocked = gen.CurrentPotential > 1;
   const hasNuclearWarning = gen.NuclearWarning && gen.NuclearWarning !== "";
   const isGeo = gen.GeoMaxPower > 0;
+  
+  const { getCustomSuffix, setCustomSuffix } = useGeneratorNamesStore();
+  const customSuffix = getCustomSuffix(gen.ID);
+  const displayName = getGeneratorDisplayName(gen, customSuffix);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(customSuffix);
+
+  const handleSave = () => {
+    setCustomSuffix(gen.ID, editValue);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditValue(customSuffix);
+    setIsEditing(false);
+  };
 
   return (
-    <tr className="border-t border-[var(--color-satisfactory-border)]/50 hover:bg-[var(--color-satisfactory-dark)]/30">
+    <tr className="group border-t border-[var(--color-satisfactory-border)]/50 hover:bg-[var(--color-satisfactory-dark)]/30">
       <td className="px-4 py-2 text-[var(--color-satisfactory-text)]">
         <div className="flex items-center gap-2">
-          <span className="truncate max-w-[180px]">{gen.Name}</span>
+          {isEditing ? (
+            <div className="flex items-center gap-1 flex-1">
+              <input
+                type="text"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSave();
+                  if (e.key === "Escape") handleCancel();
+                }}
+                placeholder="Custom suffix"
+                className="px-2 py-0.5 text-xs bg-[var(--color-satisfactory-dark)] border border-[var(--color-satisfactory-border)] rounded focus:outline-none focus:border-[var(--color-satisfactory-orange)] flex-1 max-w-[120px]"
+                autoFocus
+              />
+              <button
+                onClick={handleSave}
+                className="p-0.5 hover:bg-[var(--color-satisfactory-dark)] rounded"
+                title="Save"
+              >
+                <Check className="w-3 h-3 text-[var(--color-connected)]" />
+              </button>
+              <button
+                onClick={handleCancel}
+                className="p-0.5 hover:bg-[var(--color-satisfactory-dark)] rounded"
+                title="Cancel"
+              >
+                <X className="w-3 h-3 text-[var(--color-satisfactory-text-dim)]" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <span className="truncate max-w-[180px]" title={displayName}>
+                {displayName}
+              </span>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="p-0.5 hover:bg-[var(--color-satisfactory-dark)] rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Edit custom suffix"
+              >
+                <Pencil className="w-3 h-3 text-[var(--color-satisfactory-text-dim)]" />
+              </button>
+            </>
+          )}
           {hasNuclearWarning && (
             <span className="text-[10px] px-1 py-0.5 rounded bg-[var(--color-warning)]/20 text-[var(--color-warning)]">
               {gen.NuclearWarning}

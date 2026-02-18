@@ -37,7 +37,10 @@
       "Bash(npm run mock:control:*)",
       "Bash(git pull:*)",
       "Bash(git stash pop:*)",
-      "Bash(git stash drop:*)"
+      "Bash(git stash drop:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(git reset:*)"
     ]
   }
 }

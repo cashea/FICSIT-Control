@@ -53,7 +53,8 @@ export const useFactoryStore = create<FactoryState>()((set) => ({
         const id = c.CircuitGroupID;
         const prev = history[id] ?? [];
         const last = prev[prev.length - 1];
-        if (last && now - last.time < MIN_SNAP_INTERVAL) continue;
+        // Skip if too soon after last snapshot, or if timestamp would go backward
+        if (last && (now - last.time < MIN_SNAP_INTERVAL || now <= last.time)) continue;
         const snap: PowerSnapshot = {
           time: now,
           production: c.PowerProduction,

@@ -35,7 +35,9 @@
       "Bash(python -c:*)",
       "Bash(python scripts/extract-game-data.py:*)",
       "Bash(npm run mock:control:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(git stash pop:*)",
+      "Bash(git stash drop:*)"
     ]
   }
 }

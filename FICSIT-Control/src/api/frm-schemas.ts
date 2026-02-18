@@ -46,9 +46,9 @@ export const FRMStorageContainerSchema = z.object({
 export const FRMMachineSchema = z.object({
   Name: z.string(),
   ClassName: z.string(),
-  location: z.object({ x: z.number(), y: z.number(), z: z.number() }),
-  Recipe: z.string(),
-  RecipeClassName: z.string(),
+  location: z.object({ x: z.number(), y: z.number(), z: z.number() }).default({ x: 0, y: 0, z: 0 }),
+  Recipe: z.string().default(""),
+  RecipeClassName: z.string().default(""),
   Production: z.array(z.object({
     Name: z.string(),
     ClassName: z.string(),
@@ -56,7 +56,7 @@ export const FRMMachineSchema = z.object({
     CurrentProd: z.number(),
     MaxProd: z.number(),
     ProdPercent: z.number(),
-  })),
+  })).default([]),
   Ingredients: z.array(z.object({
     Name: z.string(),
     ClassName: z.string(),
@@ -64,16 +64,16 @@ export const FRMMachineSchema = z.object({
     CurrentConsumed: z.number(),
     MaxConsumed: z.number(),
     ConsPercent: z.number(),
-  })),
-  IsProducing: z.boolean(),
-  IsPaused: z.boolean(),
-  CircuitGroupID: z.number(),
+  })).default([]),
+  IsProducing: z.boolean().default(false),
+  IsPaused: z.boolean().default(false),
+  CircuitGroupID: z.number().default(0),
   PowerInfo: z.object({
     CircuitGroupID: z.number(),
     PowerConsumed: z.number(),
     MaxPowerConsumed: z.number(),
-  }),
-});
+  }).default({ CircuitGroupID: 0, PowerConsumed: 0, MaxPowerConsumed: 0 }),
+}).passthrough();
 
 export const FRMPlayerSchema = z.object({
   Name: z.string(),

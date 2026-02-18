@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Circle, Loader2, RefreshCw } from "lucide-react";
+import { Settings, Circle, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { ChatMessageList } from "./ChatMessageList";
 import { ChatInput } from "./ChatInput";
 import { AISettings } from "./AISettings";
@@ -21,7 +21,7 @@ const STATUS_LABELS = {
 
 export function AIChat() {
   const [showSettings, setShowSettings] = useState(false);
-  const { error, clearError, aiConnectionStatus, aiConnectionError, testAIConnection, providerConfig } = useChatStore();
+  const { error, clearError, aiConnectionStatus, aiConnectionError, testAIConnection, providerConfig, messages, clearMessages } = useChatStore();
 
   // Test connection on mount and when provider config changes
   useEffect(() => {
@@ -35,7 +35,7 @@ export function AIChat() {
   }, [providerConfig.type, providerConfig.apiKey, providerConfig.model, providerConfig.ollamaUrl, providerConfig.ollamaModel, testAIConnection]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Header bar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--color-satisfactory-border)]">
         <div className="flex items-center gap-3">
@@ -64,6 +64,16 @@ export function AIChat() {
             )}
           </div>
         </div>
+        <div className="flex items-center gap-1">
+          {messages.length > 0 && (
+            <button
+              onClick={clearMessages}
+              className="p-1.5 rounded hover:bg-[var(--color-satisfactory-border)] text-[var(--color-satisfactory-text-dim)] transition-colors"
+              title="Clear chat"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         <button
           onClick={() => setShowSettings(!showSettings)}
           className={`p-1.5 rounded transition-colors ${
@@ -74,6 +84,7 @@ export function AIChat() {
         >
           <Settings className="w-4 h-4" />
         </button>
+        </div>
       </div>
 
       {/* Settings panel (collapsible) */}
@@ -97,3 +108,5 @@ export function AIChat() {
     </div>
   );
 }
+
+export default AIChat;

@@ -51,3 +51,5 @@ export function PlannerView() {
     </div>
   );
 }
+
+export default PlannerView;

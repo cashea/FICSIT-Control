@@ -12,7 +12,11 @@ export type ItemCategory =
   | "space-elevator"
   | "nuclear"
   | "quantum"
-  | "biomass";
+  | "biomass"
+  | "ficsit"
+  | "alien"
+  | "ammo"
+  | "packaged";
 
 export interface Item {
   id: ItemId;

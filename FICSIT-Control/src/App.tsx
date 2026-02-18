@@ -1,28 +1,17 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Header } from "./components/layout/Header";
 import { TabNav } from "./components/layout/TabNav";
+import { TabLoadingFallback } from "./components/layout/TabLoadingFallback";
 import { ConnectionSetup } from "./components/connection/ConnectionSetup";
 import { FactoryStatus } from "./components/status/FactoryStatus";
-import { PowerDashboard } from "./components/dashboard/PowerDashboard";
-import { ProductionDashboard } from "./components/dashboard/ProductionDashboard";
-import { InventoryPanel } from "./components/dashboard/InventoryPanel";
-import { AIChat } from "./components/ai/AIChat";
-import { PlannerView } from "./components/planner/PlannerView";
-import { AssetsView } from "./components/assets/AssetsView";
-import { PowerGridView } from "./components/power/PowerGridView";
 import { useUIStore } from "./stores/ui-store";
 
-function DashboardView() {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <PowerDashboard />
-      <ProductionDashboard />
-      <div className="lg:col-span-2">
-        <InventoryPanel />
-      </div>
-    </div>
-  );
-}
+const AssetsView = lazy(() => import("./components/assets/AssetsView"));
+const DashboardView = lazy(() => import("./components/dashboard/DashboardView"));
+const PowerGridView = lazy(() => import("./components/power/PowerGridView"));
+const OneLineDiagramView = lazy(() => import("./components/sld/OneLineDiagramView"));
+const PlannerView = lazy(() => import("./components/planner/PlannerView"));
+const AIChat = lazy(() => import("./components/ai/AIChat"));
 
 function RecipesView() {
   return (
@@ -51,19 +40,22 @@ function App() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto min-h-0">
-          {activeTab === "ai" ? (
-            <AIChat />
-          ) : (
-            <div className="p-6">
-              {activeTab === "status" && <FactoryStatus />}
-              {activeTab === "assets" && <AssetsView />}
-              {activeTab === "dashboard" && <DashboardView />}
-              {activeTab === "power" && <PowerGridView />}
-              {activeTab === "planner" && <PlannerView />}
-              {activeTab === "recipes" && <RecipesView />}
-            </div>
-          )}
+        <main className="flex-1 flex flex-col overflow-hidden min-h-0">
+          <Suspense fallback={<TabLoadingFallback />}>
+            {activeTab === "ai" ? (
+              <AIChat />
+            ) : (
+              <div className="flex-1 overflow-y-auto p-6">
+                {activeTab === "status" && <FactoryStatus />}
+                {activeTab === "assets" && <AssetsView />}
+                {activeTab === "dashboard" && <DashboardView />}
+                {activeTab === "power" && <PowerGridView />}
+                {activeTab === "oneline" && <OneLineDiagramView />}
+                {activeTab === "planner" && <PlannerView />}
+                {activeTab === "recipes" && <RecipesView />}
+              </div>
+            )}
+          </Suspense>
         </main>
       </div>
     </div>

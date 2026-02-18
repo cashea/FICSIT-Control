@@ -47,13 +47,13 @@ describe("detectNetOutputs", () => {
     ];
     const { targets } = detectNetOutputs(stats);
     expect(targets).toHaveLength(1);
-    expect(targets[0].itemId).toBe("iron-plate");
+    expect(targets[0].itemId).toBe("IronPlate");
     expect(targets[0].ratePerMinute).toBe(60);
   });
 
   it("detects partial net output (production minus consumption)", () => {
     const stats = [
-      makeProdStat({ Name: "Screw", MaxProd: 200, MaxConsumed: 160 }),
+      makeProdStat({ Name: "Screws", MaxProd: 200, MaxConsumed: 160 }),
     ];
     const { targets } = detectNetOutputs(stats);
     expect(targets).toHaveLength(1);
@@ -100,27 +100,27 @@ describe("detectNetOutputs", () => {
 describe("detectRecipeOverrides", () => {
   it("detects alternate recipes in use", () => {
     const machines = [
-      makeMachine({ Recipe: "Cast Screw" }),
-      makeMachine({ Recipe: "Cast Screw" }),
+      makeMachine({ Recipe: "Alternate: Cast Screws" }),
+      makeMachine({ Recipe: "Alternate: Cast Screws" }),
     ];
     const { overrides } = detectRecipeOverrides(machines);
-    expect(overrides["screw"]).toBe("alt-cast-screw");
+    expect(overrides["IronScrew"]).toBe("Alternate_Screw");
   });
 
   it("does not override when default recipe is used", () => {
     const machines = [makeMachine({ Recipe: "Iron Plate" })];
     const { overrides } = detectRecipeOverrides(machines);
-    expect(overrides["iron-plate"]).toBeUndefined();
+    expect(overrides["IronPlate"]).toBeUndefined();
   });
 
   it("uses majority recipe when mixed", () => {
     const machines = [
-      makeMachine({ Recipe: "Screw" }),
-      makeMachine({ Recipe: "Cast Screw" }),
-      makeMachine({ Recipe: "Cast Screw" }),
+      makeMachine({ Recipe: "Screws" }),
+      makeMachine({ Recipe: "Alternate: Cast Screws" }),
+      makeMachine({ Recipe: "Alternate: Cast Screws" }),
     ];
     const { overrides } = detectRecipeOverrides(machines);
-    expect(overrides["screw"]).toBe("alt-cast-screw");
+    expect(overrides["IronScrew"]).toBe("Alternate_Screw");
   });
 
   it("skips machines with no recipe", () => {
@@ -143,23 +143,23 @@ describe("importFactory", () => {
     const result = importFactory(stats, machines);
 
     expect(result.input.targets).toHaveLength(1);
-    expect(result.input.targets[0].itemId).toBe("iron-plate");
+    expect(result.input.targets[0].itemId).toBe("IronPlate");
     expect(result.detectedOutputs).toHaveLength(1);
     expect(result.detectedOutputs[0].name).toBe("Iron Plate");
   });
 
   it("combines targets and recipe overrides", () => {
     const stats = [
-      makeProdStat({ Name: "Screw", MaxProd: 200, MaxConsumed: 0 }),
+      makeProdStat({ Name: "Screws", MaxProd: 200, MaxConsumed: 0 }),
     ];
     const machines = [
-      makeMachine({ Recipe: "Cast Screw" }),
-      makeMachine({ Recipe: "Cast Screw" }),
+      makeMachine({ Recipe: "Alternate: Cast Screws" }),
+      makeMachine({ Recipe: "Alternate: Cast Screws" }),
     ];
     const result = importFactory(stats, machines);
 
-    expect(result.input.targets[0].itemId).toBe("screw");
-    expect(result.input.recipeOverrides["screw"]).toBe("alt-cast-screw");
+    expect(result.input.targets[0].itemId).toBe("IronScrew");
+    expect(result.input.recipeOverrides["IronScrew"]).toBe("Alternate_Screw");
   });
 
   it("handles empty factory data", () => {

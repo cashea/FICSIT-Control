@@ -3,14 +3,14 @@ import { resolveItemName, resolveRecipeName } from "../frm-name-map";
 
 describe("resolveItemName", () => {
   it("resolves exact item names", () => {
-    expect(resolveItemName("Iron Plate")).toBe("iron-plate");
-    expect(resolveItemName("Iron Ingot")).toBe("iron-ingot");
-    expect(resolveItemName("Heavy Modular Frame")).toBe("heavy-modular-frame");
+    expect(resolveItemName("Iron Plate")).toBe("IronPlate");
+    expect(resolveItemName("Iron Ingot")).toBe("IronIngot");
+    expect(resolveItemName("Heavy Modular Frame")).toBe("ModularFrameHeavy");
   });
 
   it("resolves case-insensitive", () => {
-    expect(resolveItemName("iron plate")).toBe("iron-plate");
-    expect(resolveItemName("COPPER ORE")).toBe("copper-ore");
+    expect(resolveItemName("iron plate")).toBe("IronPlate");
+    expect(resolveItemName("COPPER ORE")).toBe("OreCopper");
   });
 
   it("returns undefined for unknown items", () => {
@@ -21,14 +21,14 @@ describe("resolveItemName", () => {
 
 describe("resolveRecipeName", () => {
   it("resolves default recipe names", () => {
-    expect(resolveRecipeName("Iron Plate")).toBe("iron-plate");
-    expect(resolveRecipeName("Screw")).toBe("screw");
+    expect(resolveRecipeName("Iron Plate")).toBe("IronPlate");
+    expect(resolveRecipeName("Screws")).toBe("Screw");
   });
 
   it("resolves alternate recipe names", () => {
-    expect(resolveRecipeName("Cast Screw")).toBe("alt-cast-screw");
-    expect(resolveRecipeName("Iron Wire")).toBe("alt-iron-wire");
-    expect(resolveRecipeName("Bolted Iron Plate")).toBe("alt-bolted-iron-plate");
+    expect(resolveRecipeName("Alternate: Cast Screws")).toBe("Alternate_Screw");
+    expect(resolveRecipeName("Alternate: Iron Wire")).toBe("Alternate_Wire_1");
+    expect(resolveRecipeName("Alternate: Bolted Iron Plate")).toBe("Alternate_ReinforcedIronPlate_1");
   });
 
   it("returns undefined for unknown recipes", () => {

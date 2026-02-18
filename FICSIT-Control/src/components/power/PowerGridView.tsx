@@ -31,3 +31,5 @@ export function PowerGridView() {
 
   return <PowerOverview onSelectCircuit={setSelectedCircuit} />;
 }
+
+export default PowerGridView;

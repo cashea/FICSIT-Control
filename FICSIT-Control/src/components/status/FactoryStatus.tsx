@@ -2,6 +2,7 @@ import { useConnectionStore } from "../../stores/connection-store";
 import { OverviewCards } from "./OverviewCards";
 import { MachineBreakdown } from "./MachineBreakdown";
 import { BottleneckList } from "./BottleneckList";
+import { RecommendationBanner } from "./RecommendationBanner";
 
 export function FactoryStatus() {
   const { status } = useConnectionStore();
@@ -32,6 +33,7 @@ export function FactoryStatus() {
   return (
     <div className="space-y-6">
       <OverviewCards />
+      <RecommendationBanner />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <BottleneckList />
         <MachineBreakdown />

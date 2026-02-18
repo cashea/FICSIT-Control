@@ -16,7 +16,7 @@ export interface FactorySnapshot {
   machines: Record<string, FRMMachine[]>;
 }
 
-function summarizePower(circuits: FRMPowerCircuit[]): string {
+export function summarizePower(circuits: FRMPowerCircuit[]): string {
   if (circuits.length === 0) return "No power data available.";
 
   const totalProd = circuits.reduce((s, c) => s + c.PowerProduction, 0);
@@ -43,7 +43,7 @@ function summarizePower(circuits: FRMPowerCircuit[]): string {
   return summary;
 }
 
-function summarizeProduction(stats: FRMProdStat[]): string {
+export function summarizeProduction(stats: FRMProdStat[]): string {
   if (stats.length === 0) return "No production data available.";
 
   const active = stats.filter(
@@ -59,7 +59,7 @@ function summarizeProduction(stats: FRMProdStat[]): string {
     .join("\n");
 }
 
-function summarizeInventory(containers: FRMStorageContainer[]): string {
+export function summarizeInventory(containers: FRMStorageContainer[]): string {
   if (containers.length === 0) return "No storage data available.";
 
   const totals = new Map<string, { amount: number; maxAmount: number }>();
@@ -84,7 +84,7 @@ function summarizeInventory(containers: FRMStorageContainer[]): string {
   );
 }
 
-function summarizeMachines(machines: Record<string, FRMMachine[]>): string {
+export function summarizeMachines(machines: Record<string, FRMMachine[]>): string {
   const entries = Object.entries(machines).filter(([, list]) => list.length > 0);
   if (entries.length === 0) return "No machine data available.";
 

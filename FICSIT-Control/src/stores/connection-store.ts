@@ -113,6 +113,8 @@ export const useConnectionStore = create<ConnectionState>()(
               const result = machineResults[i];
               if (result.status === "fulfilled") {
                 factory.setMachines(MACHINE_ENDPOINTS[i], result.value);
+              } else {
+                console.warn(`[FRM] ${MACHINE_ENDPOINTS[i]} failed:`, result.reason);
               }
             }
 

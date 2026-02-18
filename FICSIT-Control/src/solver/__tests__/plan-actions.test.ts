@@ -22,23 +22,23 @@ describe("generatePlanActions", () => {
       ...emptySolverOutput,
       nodes: [
         {
-          id: "iron-plate",
-          recipeId: "iron-plate",
-          buildingId: "constructor",
+          id: "IronPlate",
+          recipeId: "IronPlate",
+          buildingId: "ConstructorMk1",
           buildingCount: 1,
           clockSpeed: 1,
-          inputs: [{ itemId: "iron-ingot", ratePerMinute: 30 }],
-          outputs: [{ itemId: "iron-plate", ratePerMinute: 20 }],
+          inputs: [{ itemId: "IronIngot", ratePerMinute: 30 }],
+          outputs: [{ itemId: "IronPlate", ratePerMinute: 20 }],
           powerMW: 4,
         },
         {
-          id: "iron-ingot",
-          recipeId: "iron-ingot",
-          buildingId: "smelter",
+          id: "IngotIron",
+          recipeId: "IngotIron",
+          buildingId: "SmelterMk1",
           buildingCount: 1,
           clockSpeed: 1,
-          inputs: [{ itemId: "iron-ore", ratePerMinute: 30 }],
-          outputs: [{ itemId: "iron-ingot", ratePerMinute: 30 }],
+          inputs: [{ itemId: "OreIron", ratePerMinute: 30 }],
+          outputs: [{ itemId: "IronIngot", ratePerMinute: 30 }],
           powerMW: 4,
         },
       ],
@@ -48,13 +48,13 @@ describe("generatePlanActions", () => {
     expect(actions).toHaveLength(2);
 
     expect(actions[0].type).toBe("SET_RECIPE");
-    expect(actions[0].payload.recipeId).toBe("iron-plate");
-    expect(actions[0].building).toBe("constructor");
+    expect(actions[0].payload.recipeId).toBe("IronPlate");
+    expect(actions[0].building).toBe("ConstructorMk1");
     expect(actions[0].enabled).toBe(true);
 
     expect(actions[1].type).toBe("SET_RECIPE");
-    expect(actions[1].payload.recipeId).toBe("iron-ingot");
-    expect(actions[1].building).toBe("smelter");
+    expect(actions[1].payload.recipeId).toBe("IngotIron");
+    expect(actions[1].building).toBe("SmelterMk1");
   });
 
   it("all actions have human-readable descriptions", () => {
@@ -62,21 +62,21 @@ describe("generatePlanActions", () => {
       ...emptySolverOutput,
       nodes: [
         {
-          id: "iron-plate",
-          recipeId: "iron-plate",
-          buildingId: "constructor",
+          id: "IronPlate",
+          recipeId: "IronPlate",
+          buildingId: "ConstructorMk1",
           buildingCount: 2.5,
           clockSpeed: 1,
-          inputs: [{ itemId: "iron-ingot", ratePerMinute: 75 }],
-          outputs: [{ itemId: "iron-plate", ratePerMinute: 50 }],
+          inputs: [{ itemId: "IronIngot", ratePerMinute: 75 }],
+          outputs: [{ itemId: "IronPlate", ratePerMinute: 50 }],
           powerMW: 12,
         },
       ],
     };
 
     const actions = generatePlanActions(output);
-    expect(actions[0].description).toContain("constructor");
-    expect(actions[0].description).toContain("iron-plate");
+    expect(actions[0].description).toContain("ConstructorMk1");
+    expect(actions[0].description).toContain("IronPlate");
     expect(actions[0].description).toContain("3x"); // ceil(2.5) = 3
   });
 
@@ -85,23 +85,23 @@ describe("generatePlanActions", () => {
       ...emptySolverOutput,
       nodes: [
         {
-          id: "iron-plate",
-          recipeId: "iron-plate",
-          buildingId: "constructor",
+          id: "IronPlate",
+          recipeId: "IronPlate",
+          buildingId: "ConstructorMk1",
           buildingCount: 1,
           clockSpeed: 1,
           inputs: [],
-          outputs: [{ itemId: "iron-plate", ratePerMinute: 20 }],
+          outputs: [{ itemId: "IronPlate", ratePerMinute: 20 }],
           powerMW: 4,
         },
         {
-          id: "copper-wire",
-          recipeId: "copper-wire",
-          buildingId: "constructor",
+          id: "Wire",
+          recipeId: "Wire",
+          buildingId: "ConstructorMk1",
           buildingCount: 1,
           clockSpeed: 1,
           inputs: [],
-          outputs: [{ itemId: "wire", ratePerMinute: 30 }],
+          outputs: [{ itemId: "Wire", ratePerMinute: 30 }],
           powerMW: 4,
         },
       ],

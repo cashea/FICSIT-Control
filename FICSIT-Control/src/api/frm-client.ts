@@ -149,8 +149,8 @@ export class FRMClient {
         const parsed = GeneratorArraySchema.safeParse(data);
         if (parsed.success) this.emit("getGenerators", parsed.data);
       } else if ("IsProducing" in first) {
-        const parsed = MachineArraySchema.safeParse(data);
-        if (parsed.success) this.emit("getAssembler", parsed.data);
+        // Machine data — can't determine specific type from WS payload shape alone,
+        // so skip emitting here. REST polling handles per-type machine data correctly.
       } else if ("PlayerHP" in first) {
         const parsed = PlayerArraySchema.safeParse(data);
         if (parsed.success) this.emit("getPlayer", parsed.data);

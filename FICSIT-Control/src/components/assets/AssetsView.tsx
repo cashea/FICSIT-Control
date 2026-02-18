@@ -91,3 +91,5 @@ export function AssetsView() {
     </div>
   );
 }
+
+export default AssetsView;

@@ -137,9 +137,16 @@ describe("generator-names", () => {
       expect(getGeneratorDisplayName(gen, "  Main  ")).toBe("Generator Coal Main");
     });
 
-    it("should work with geothermal generators", () => {
+    it("should work with geothermal generators (no fuel portion)", () => {
       const gen = createMockGenerator("Build_GeneratorGeoThermal_C", []);
-      expect(getGeneratorDisplayName(gen, "Node1")).toBe("Geothermal Geothermal Node1");
+      gen.GeoMaxPower = 200;
+      expect(getGeneratorDisplayName(gen, "Node1")).toBe("Geothermal Node1");
+    });
+
+    it("should show only type for geothermal without suffix", () => {
+      const gen = createMockGenerator("Build_GeneratorGeoThermal_C", []);
+      gen.GeoMaxPower = 200;
+      expect(getGeneratorDisplayName(gen, "")).toBe("Geothermal");
     });
   });
 });

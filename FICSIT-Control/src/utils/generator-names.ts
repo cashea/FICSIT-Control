@@ -52,15 +52,18 @@ export function getGeneratorDisplayName(
   customSuffix: string
 ): string {
   const typeName = getGeneratorTypeName(generator.ClassName);
-  const fuelName = getCurrentFuelName(generator);
-  
-  // Build the name parts
-  const parts = [typeName, fuelName];
-  
+
+  // Build the name parts — geothermal has no fuel, so skip fuel portion
+  const parts = [typeName];
+
+  if (generator.GeoMaxPower === 0) {
+    parts.push(getCurrentFuelName(generator));
+  }
+
   // Add custom suffix if provided
   if (customSuffix && customSuffix.trim()) {
     parts.push(customSuffix.trim());
   }
-  
+
   return parts.join(" ");
 }

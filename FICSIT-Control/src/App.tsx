@@ -40,12 +40,12 @@ function App() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 flex flex-col overflow-hidden min-h-0">
+        <main className="flex-1 flex flex-col overflow-hidden min-h-0 min-w-0">
           <Suspense fallback={<TabLoadingFallback />}>
             {activeTab === "ai" ? (
               <AIChat />
             ) : (
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 flex flex-col min-h-0 min-w-0 p-6">
                 {activeTab === "status" && <FactoryStatus />}
                 {activeTab === "assets" && <AssetsView />}
                 {activeTab === "dashboard" && <DashboardView />}

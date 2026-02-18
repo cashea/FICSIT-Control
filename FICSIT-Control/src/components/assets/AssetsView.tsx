@@ -5,6 +5,8 @@ import { AssetSummaryCards } from "./AssetSummaryCards";
 import { MachineAssetList } from "./MachineAssetList";
 import { PowerCircuitList } from "./PowerCircuitList";
 import { StorageAssetList } from "./StorageAssetList";
+import { MachineDetail } from "../machines/MachineDetail";
+import type { MachineKey } from "../../utils/machine-id";
 
 type Category = "all" | "machines" | "power" | "storage";
 
@@ -19,10 +21,11 @@ export function AssetsView() {
   const { status } = useConnectionStore();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<Category>("all");
+  const [selectedMachine, setSelectedMachine] = useState<MachineKey | null>(null);
 
   if (status !== "connected") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-[var(--color-satisfactory-text-dim)]">
+      <div className="flex-1 flex flex-col items-center justify-center text-[var(--color-satisfactory-text-dim)]">
         <p className="text-lg mb-2">Not connected to game</p>
         <p className="text-sm mb-4">
           Connect to FICSIT Remote Monitoring in the sidebar to view factory
@@ -43,10 +46,21 @@ export function AssetsView() {
     );
   }
 
+  if (selectedMachine !== null) {
+    return (
+      <div className="flex flex-col flex-1 min-h-0">
+        <MachineDetail
+          machineKey={selectedMachine}
+          onBack={() => setSelectedMachine(null)}
+        />
+      </div>
+    );
+  }
+
   const normalizedSearch = search.toLowerCase().trim();
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col flex-1 min-h-0 gap-6">
       <AssetSummaryCards />
 
       {/* Filter bar */}
@@ -78,16 +92,18 @@ export function AssetsView() {
         </div>
       </div>
 
-      {/* Asset sections */}
-      {(category === "all" || category === "machines") && (
-        <MachineAssetList search={normalizedSearch} />
-      )}
-      {(category === "all" || category === "power") && (
-        <PowerCircuitList search={normalizedSearch} />
-      )}
-      {(category === "all" || category === "storage") && (
-        <StorageAssetList search={normalizedSearch} />
-      )}
+      {/* Asset sections — scrollable */}
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-6">
+        {(category === "all" || category === "machines") && (
+          <MachineAssetList search={normalizedSearch} onSelectMachine={setSelectedMachine} />
+        )}
+        {(category === "all" || category === "power") && (
+          <PowerCircuitList search={normalizedSearch} />
+        )}
+        {(category === "all" || category === "storage") && (
+          <StorageAssetList search={normalizedSearch} />
+        )}
+      </div>
     </div>
   );
 }

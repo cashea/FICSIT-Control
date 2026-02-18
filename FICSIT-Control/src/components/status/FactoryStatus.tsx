@@ -1,15 +1,19 @@
+import { useState } from "react";
 import { useConnectionStore } from "../../stores/connection-store";
 import { OverviewCards } from "./OverviewCards";
 import { MachineBreakdown } from "./MachineBreakdown";
 import { BottleneckList } from "./BottleneckList";
 import { RecommendationBanner } from "./RecommendationBanner";
+import { MachineDetail } from "../machines/MachineDetail";
+import type { MachineKey } from "../../utils/machine-id";
 
 export function FactoryStatus() {
   const { status } = useConnectionStore();
+  const [selectedMachine, setSelectedMachine] = useState<MachineKey | null>(null);
 
   if (status !== "connected") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-[var(--color-satisfactory-text-dim)]">
+      <div className="flex-1 flex flex-col items-center justify-center text-[var(--color-satisfactory-text-dim)]">
         <p className="text-lg mb-2">Not connected to game</p>
         <p className="text-sm mb-4">
           Connect to FICSIT Remote Monitoring in the sidebar to view factory
@@ -30,13 +34,26 @@ export function FactoryStatus() {
     );
   }
 
+  if (selectedMachine !== null) {
+    return (
+      <div className="flex flex-col flex-1 min-h-0">
+        <MachineDetail
+          machineKey={selectedMachine}
+          onBack={() => setSelectedMachine(null)}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col flex-1 min-h-0 gap-6">
       <OverviewCards />
       <RecommendationBanner />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <BottleneckList />
-        <MachineBreakdown />
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <BottleneckList />
+          <MachineBreakdown onSelectMachine={setSelectedMachine} />
+        </div>
       </div>
     </div>
   );

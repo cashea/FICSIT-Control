@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronDown, ChevronRight, Factory } from "lucide-react";
 import { useFactoryStore } from "../../stores/factory-store";
+import { useUIStore } from "../../stores/ui-store";
+import { machineKey, type MachineKey } from "../../utils/machine-id";
 import type { FRMMachine } from "../../types";
 
 const MACHINE_LABELS: Record<string, string> = {
@@ -18,17 +20,32 @@ const MACHINE_LABELS: Record<string, string> = {
 function MachineTypeRow({
   type,
   machines,
+  onSelectMachine,
+  highlighted,
 }: {
   type: string;
   machines: FRMMachine[];
+  onSelectMachine?: (key: MachineKey) => void;
+  highlighted?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const rowRef = useRef<HTMLDivElement>(null);
   const running = machines.filter((m) => m.IsProducing).length;
   const paused = machines.filter((m) => m.IsPaused).length;
   const idle = machines.length - running - paused;
 
+  useEffect(() => {
+    if (highlighted) {
+      setExpanded(true);
+      rowRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [highlighted]);
+
   return (
-    <div className="border border-[var(--color-satisfactory-border)] rounded-lg overflow-hidden">
+    <div
+      ref={rowRef}
+      className={`border rounded-lg overflow-hidden transition-colors ${highlighted ? "border-[var(--color-satisfactory-orange)] ring-1 ring-[var(--color-satisfactory-orange)]/30" : "border-[var(--color-satisfactory-border)]"}`}
+    >
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between p-3 bg-[var(--color-satisfactory-panel)] hover:bg-[var(--color-satisfactory-border)]/30 transition-colors text-left"
@@ -66,7 +83,8 @@ function MachineTypeRow({
           {machines.map((machine, i) => (
             <div
               key={i}
-              className="flex items-center justify-between px-4 py-2 text-xs border-b border-[var(--color-satisfactory-border)] last:border-b-0"
+              onClick={() => onSelectMachine?.(machineKey(machine))}
+              className={`flex items-center justify-between px-4 py-2 text-xs border-b border-[var(--color-satisfactory-border)] last:border-b-0${onSelectMachine ? " cursor-pointer hover:bg-[var(--color-satisfactory-border)]/20" : ""}`}
             >
               <div className="flex items-center gap-2">
                 <div
@@ -93,11 +111,21 @@ function MachineTypeRow({
   );
 }
 
-export function MachineBreakdown() {
+export function MachineBreakdown({ onSelectMachine }: {
+  onSelectMachine?: (key: MachineKey) => void;
+} = {}) {
   const { machines } = useFactoryStore();
+  const { highlightedMachineType, setHighlightedMachineType } = useUIStore();
   const types = Object.entries(machines).filter(
     ([, list]) => list.length > 0
   );
+
+  // Clear highlight after a short delay so the ring fades
+  useEffect(() => {
+    if (!highlightedMachineType) return;
+    const timer = setTimeout(() => setHighlightedMachineType(null), 3000);
+    return () => clearTimeout(timer);
+  }, [highlightedMachineType, setHighlightedMachineType]);
 
   if (types.length === 0) {
     return (
@@ -117,7 +145,7 @@ export function MachineBreakdown() {
         {types
           .sort(([, a], [, b]) => b.length - a.length)
           .map(([type, list]) => (
-            <MachineTypeRow key={type} type={type} machines={list} />
+            <MachineTypeRow key={type} type={type} machines={list} onSelectMachine={onSelectMachine} highlighted={highlightedMachineType === type} />
           ))}
       </div>
     </div>

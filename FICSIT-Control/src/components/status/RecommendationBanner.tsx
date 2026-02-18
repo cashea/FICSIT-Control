@@ -1,13 +1,56 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Lightbulb, RefreshCw, Loader2, X, Settings } from "lucide-react";
 import { useRecommendation } from "../../hooks/useRecommendation";
 import { useUIStore } from "../../stores/ui-store";
 
+/** Parse [[endpoint|Label]] markers in recommendation text into clickable spans */
+function parseRecommendationText(
+  text: string,
+  onClickType: (endpoint: string) => void,
+): ReactNode[] {
+  const parts: ReactNode[] = [];
+  const regex = /\[\[([^|\]]+)\|([^\]]+)\]\]/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    const endpoint = match[1];
+    const label = match[2];
+    parts.push(
+      <button
+        key={match.index}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClickType(endpoint);
+        }}
+        className="underline decoration-[var(--color-satisfactory-orange)]/50 text-[var(--color-satisfactory-orange)] hover:text-[var(--color-satisfactory-orange)]/80 transition-colors cursor-pointer"
+      >
+        {label}
+      </button>,
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
+}
+
 export function RecommendationBanner() {
   const { status, text, error, lastUpdated, isAIConfigured, isFactoryConnected, refresh } =
     useRecommendation();
-  const setActiveTab = useUIStore((s) => s.setActiveTab);
+  const { setActiveTab, setHighlightedMachineType } = useUIStore();
   const [dismissedAt, setDismissedAt] = useState<number | null>(null);
+
+  const handleMachineTypeClick = (endpoint: string) => {
+    setHighlightedMachineType(endpoint);
+    setActiveTab("status");
+  };
 
   if (!isAIConfigured) {
     return (
@@ -51,7 +94,9 @@ export function RecommendationBanner() {
     <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[var(--color-satisfactory-orange)]/30 bg-[var(--color-satisfactory-orange)]/5">
       <Lightbulb className="w-4 h-4 text-[var(--color-satisfactory-orange)] shrink-0" />
       <div className="flex-1 min-w-0">
-        <span className="text-sm text-[var(--color-satisfactory-text)]">{text}</span>
+        <span className="text-sm text-[var(--color-satisfactory-text)]">
+          {parseRecommendationText(text!, handleMachineTypeClick)}
+        </span>
         {error && (
           <span className="text-xs text-[var(--color-disconnected)] ml-2">
             (refresh failed)

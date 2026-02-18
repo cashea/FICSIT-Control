@@ -21,7 +21,7 @@ export const SLD_GRAPH_PROPS = {
   nodesDraggable: false,
   nodesConnectable: false,
   elementsSelectable: true,
-  panOnScroll: true,
+  panOnScroll: false,
   zoomOnScroll: true,
   proOptions: { hideAttribution: false },
 } as const;

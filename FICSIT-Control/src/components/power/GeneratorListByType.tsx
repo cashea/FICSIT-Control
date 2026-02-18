@@ -85,11 +85,11 @@ function GeneratorRow({ gen }: { gen: FRMGenerator }) {
   const isOverclocked = gen.CurrentPotential > 1;
   const hasNuclearWarning = gen.NuclearWarning && gen.NuclearWarning !== "";
   const isGeo = gen.GeoMaxPower > 0;
-  
+
   const { getCustomSuffix, setCustomSuffix } = useGeneratorNamesStore();
   const customSuffix = getCustomSuffix(gen.ID);
   const displayName = getGeneratorDisplayName(gen, customSuffix);
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(customSuffix);
 
@@ -118,9 +118,9 @@ function GeneratorRow({ gen }: { gen: FRMGenerator }) {
                   if (e.key === "Escape") handleCancel();
                 }}
                 placeholder="Custom suffix"
-                className="px-2 py-0.5 text-xs bg-[var(--color-satisfactory-dark)] 
-                  border border-[var(--color-satisfactory-border)] rounded 
-                  focus:outline-none focus:border-[var(--color-satisfactory-orange)] 
+                className="px-2 py-0.5 text-xs bg-[var(--color-satisfactory-dark)]
+                  border border-[var(--color-satisfactory-border)] rounded
+                  focus:outline-none focus:border-[var(--color-satisfactory-orange)]
                   flex-1 max-w-[120px]"
                 autoFocus
               />
@@ -146,7 +146,7 @@ function GeneratorRow({ gen }: { gen: FRMGenerator }) {
               </span>
               <button
                 onClick={() => setIsEditing(true)}
-                className="p-0.5 hover:bg-[var(--color-satisfactory-dark)] rounded 
+                className="p-0.5 hover:bg-[var(--color-satisfactory-dark)] rounded
                   opacity-0 group-hover:opacity-100 transition-opacity"
                 title="Edit custom suffix"
               >

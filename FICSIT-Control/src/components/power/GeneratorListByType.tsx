@@ -5,6 +5,7 @@ import { ControlActionButton } from "../control/ControlActionButton";
 import {
   groupGeneratorsByCategory,
   GENERATOR_COLORS,
+  classifyGenerator,
   type GeneratorGroup,
 } from "../../utils/power";
 import { formatMW } from "../../utils/format";
@@ -83,12 +84,15 @@ function GeneratorRow({ gen }: { gen: FRMGenerator }) {
   const isOverclocked = gen.CurrentPotential > 1;
   const hasNuclearWarning = gen.NuclearWarning && gen.NuclearWarning !== "";
   const isGeo = gen.GeoMaxPower > 0;
+  const generatorType = classifyGenerator(gen.ClassName);
 
   return (
     <tr className="border-t border-[var(--color-satisfactory-border)]/50 hover:bg-[var(--color-satisfactory-dark)]/30">
       <td className="px-4 py-2 text-[var(--color-satisfactory-text)]">
         <div className="flex items-center gap-2">
-          <span className="truncate max-w-[180px]">{gen.Name}</span>
+          <span className="truncate max-w-[180px]">
+            {generatorType} - {gen.Name}
+          </span>
           {hasNuclearWarning && (
             <span className="text-[10px] px-1 py-0.5 rounded bg-[var(--color-warning)]/20 text-[var(--color-warning)]">
               {gen.NuclearWarning}

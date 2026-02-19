@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Factory, ArrowUpDown, Power } from "lucide-r
 import { useFactoryStore } from "../../stores/factory-store";
 import { useControlStore } from "../../stores/control-store";
 import { ControlActionButton } from "../control/ControlActionButton";
+import { machineKey, type MachineKey } from "../../utils/machine-id";
 import type { FRMMachine } from "../../types";
 
 const MACHINE_LABELS: Record<string, string> = {
@@ -39,10 +40,12 @@ function MachineTypeGroup({
   type,
   machines,
   search,
+  onSelectMachine,
 }: {
   type: string;
   machines: FRMMachine[];
   search: string;
+  onSelectMachine?: (key: MachineKey) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("status");
@@ -139,7 +142,8 @@ function MachineTypeGroup({
             return (
               <div
                 key={i}
-                className="flex items-center gap-4 px-4 py-2 text-xs border-b border-[var(--color-satisfactory-border)] last:border-b-0"
+                onClick={() => onSelectMachine?.(machineKey(machine))}
+                className={`flex items-center gap-4 px-4 py-2 text-xs border-b border-[var(--color-satisfactory-border)] last:border-b-0${onSelectMachine ? " cursor-pointer hover:bg-[var(--color-satisfactory-border)]/20" : ""}`}
               >
                 <div
                   className={`w-2 h-2 rounded-full shrink-0 ${
@@ -192,7 +196,10 @@ function MachineTypeGroup({
   );
 }
 
-export function MachineAssetList({ search }: { search: string }) {
+export function MachineAssetList({ search, onSelectMachine }: {
+  search: string;
+  onSelectMachine?: (key: MachineKey) => void;
+}) {
   const { machines } = useFactoryStore();
   const types = Object.entries(machines).filter(([, list]) => list.length > 0);
 
@@ -219,6 +226,7 @@ export function MachineAssetList({ search }: { search: string }) {
               type={type}
               machines={list}
               search={search}
+              onSelectMachine={onSelectMachine}
             />
           ))}
       </div>

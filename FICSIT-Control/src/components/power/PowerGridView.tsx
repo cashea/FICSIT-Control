@@ -10,7 +10,7 @@ export function PowerGridView() {
 
   if (status !== "connected") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-[var(--color-satisfactory-text-dim)]">
+      <div className="flex-1 flex flex-col items-center justify-center text-[var(--color-satisfactory-text-dim)]">
         <Zap className="w-12 h-12 mb-4 opacity-30" />
         <p className="text-lg mb-2">Not connected to game</p>
         <p className="text-sm">
@@ -22,10 +22,12 @@ export function PowerGridView() {
 
   if (selectedCircuit !== null) {
     return (
-      <CircuitDetail
-        circuitId={selectedCircuit}
-        onBack={() => setSelectedCircuit(null)}
-      />
+      <div className="flex flex-col flex-1 min-h-0">
+        <CircuitDetail
+          circuitId={selectedCircuit}
+          onBack={() => setSelectedCircuit(null)}
+        />
+      </div>
     );
   }
 

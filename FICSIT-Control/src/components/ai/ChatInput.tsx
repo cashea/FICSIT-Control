@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useLayoutEffect } from "react";
 import { Send, Square, X, Image } from "lucide-react";
 import { useChatStore } from "../../stores/chat-store";
 import type { ImageAttachment } from "../../ai/types";
@@ -27,11 +27,34 @@ const ACCEPTED_TYPES = new Set([
   "image/webp",
 ]);
 
+const MAX_TEXTAREA_HEIGHT = 150;
+
 export function ChatInput() {
   const [input, setInput] = useState("");
   const [pendingImages, setPendingImages] = useState<ImageAttachment[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { sendMessage, isStreaming, stopStreaming } = useChatStore();
+  const lastAppliedDraft = useRef<string | null>(null);
+  const { sendMessage, isStreaming, stopStreaming, draftMessage, setDraftMessage } = useChatStore();
+
+  // Helper function to resize textarea
+  const resizeTextarea = useCallback(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, MAX_TEXTAREA_HEIGHT) + "px";
+    }
+  }, []);
+
+  // Apply draft message when it changes
+  useLayoutEffect(() => {
+    if (draftMessage !== null && draftMessage !== lastAppliedDraft.current) {
+      lastAppliedDraft.current = draftMessage;
+      setInput(draftMessage);
+      setDraftMessage(null);
+      // Auto-resize and focus textarea synchronously
+      resizeTextarea();
+      textareaRef.current?.focus();
+    }
+  }, [draftMessage, setInput, setDraftMessage, resizeTextarea]);
 
   const handleSend = useCallback(() => {
     const trimmed = input.trim();
@@ -53,9 +76,10 @@ export function ChatInput() {
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
+    // Update height based on the textarea element directly
     const el = e.target;
     el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, 150) + "px";
+    el.style.height = Math.min(el.scrollHeight, MAX_TEXTAREA_HEIGHT) + "px";
   };
 
   const addImageFiles = useCallback(async (files: FileList | File[]) => {

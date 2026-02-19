@@ -1,7 +1,18 @@
-import { useState, type ReactNode } from "react";
-import { Lightbulb, RefreshCw, Loader2, X, Settings } from "lucide-react";
+```tsx
+import { useState, useCallback, type ReactNode } from "react";
+import {
+  Lightbulb,
+  RefreshCw,
+  Loader2,
+  X,
+  Settings,
+  MessageCircleReply,
+} from "lucide-react";
 import { useRecommendation } from "../../hooks/useRecommendation";
 import { useUIStore } from "../../stores/ui-store";
+import { useChatStore } from "../../stores/chat-store";
+
+const REPLY_MESSAGE_TEMPLATE = (text: string) => `Regarding your recommendation: "${text}"\n\n`;
 
 /** Parse [[endpoint|Label]] markers in recommendation text into clickable spans */
 function parseRecommendationText(
@@ -44,13 +55,27 @@ function parseRecommendationText(
 export function RecommendationBanner() {
   const { status, text, error, lastUpdated, isAIConfigured, isFactoryConnected, refresh } =
     useRecommendation();
-  const { setActiveTab, setHighlightedMachineType } = useUIStore();
+
+  const setActiveTab = useUIStore((s) => s.setActiveTab);
+  const setHighlightedMachineType = useUIStore((s) => s.setHighlightedMachineType);
+  const setDraftMessage = useChatStore((s) => s.setDraftMessage);
+
   const [dismissedAt, setDismissedAt] = useState<number | null>(null);
 
-  const handleMachineTypeClick = (endpoint: string) => {
-    setHighlightedMachineType(endpoint);
-    setActiveTab("status");
-  };
+  const handleMachineTypeClick = useCallback(
+    (endpoint: string) => {
+      setHighlightedMachineType(endpoint);
+      setActiveTab("status");
+    },
+    [setHighlightedMachineType, setActiveTab],
+  );
+
+  const handleReplyToAI = useCallback(() => {
+    if (text) {
+      setDraftMessage(REPLY_MESSAGE_TEMPLATE(text));
+      setActiveTab("ai");
+    }
+  }, [text, setDraftMessage, setActiveTab]);
 
   if (!isAIConfigured) {
     return (
@@ -105,6 +130,13 @@ export function RecommendationBanner() {
       </div>
       <div className="flex items-center gap-1 shrink-0">
         <button
+          onClick={handleReplyToAI}
+          className="p-1.5 rounded hover:bg-[var(--color-satisfactory-border)] text-[var(--color-satisfactory-text-dim)] transition-colors"
+          title="Reply to AI"
+        >
+          <MessageCircleReply className="w-3.5 h-3.5" />
+        </button>
+        <button
           onClick={refresh}
           disabled={status === "loading"}
           className="p-1.5 rounded hover:bg-[var(--color-satisfactory-border)] text-[var(--color-satisfactory-text-dim)] transition-colors disabled:opacity-50"
@@ -127,3 +159,4 @@ export function RecommendationBanner() {
     </div>
   );
 }
+```

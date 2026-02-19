@@ -97,6 +97,31 @@ export interface FRMGeneratorFuel {
   Amount: number;
 }
 
+export interface FRMCable {
+  ID: string;
+  Name: string;
+  ClassName: string;
+  location0: { x: number; y: number; z: number };
+  Connected0: boolean;
+  location1: { x: number; y: number; z: number };
+  Connected1: boolean;
+  Length: number;
+}
+
+export interface FRMSwitch {
+  ID: string;
+  Name: string;
+  SwitchTag: string;
+  ClassName: string;
+  IsOn: boolean;
+  Connected0: number;
+  Connected1: number;
+  Primary: number;
+  Secondary: number;
+  Priority: number;
+  location: { x: number; y: number; z: number; rotation: number };
+}
+
 export interface FRMGenerator {
   ID: string;
   Name: string;

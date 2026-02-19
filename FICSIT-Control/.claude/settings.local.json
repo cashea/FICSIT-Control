@@ -44,7 +44,12 @@
       "Bash(gh pr view:*)",
       "Bash(git fetch:*)",
       "Bash(git merge-tree:*)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:app.unpkg.com)",
+      "Bash(npm list:*)",
+      "Bash(npm pack:*)",
+      "Bash(gh pr list:*)",
+      "Bash(xxd:*)"
     ]
   }
 }

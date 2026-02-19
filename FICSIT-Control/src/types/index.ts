@@ -21,6 +21,8 @@ export type {
   FRMPlayer,
   FRMGenerator,
   FRMGeneratorFuel,
+  FRMCable,
+  FRMSwitch,
 } from "./frm";
 export type {
   ControlFeatureMap,

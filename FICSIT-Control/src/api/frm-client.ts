@@ -6,6 +6,8 @@ import type {
   FRMMachine,
   FRMPlayer,
   FRMGenerator,
+  FRMCable,
+  FRMSwitch,
 } from "../types";
 import {
   PowerCircuitArraySchema,
@@ -14,6 +16,8 @@ import {
   MachineArraySchema,
   PlayerArraySchema,
   GeneratorArraySchema,
+  CableArraySchema,
+  SwitchArraySchema,
 } from "./frm-schemas";
 
 export type FRMEndpoint =
@@ -35,7 +39,9 @@ export type FRMEndpoint =
   | "getPlayer"
   | "getRecipes"
   | "getSessionInfo"
-  | "getGenerators";
+  | "getGenerators"
+  | "getCables"
+  | "getSwitches";
 
 export type FRMEventHandler = (endpoint: FRMEndpoint, data: unknown) => void;
 
@@ -154,6 +160,12 @@ export class FRMClient {
       } else if ("PlayerHP" in first) {
         const parsed = PlayerArraySchema.safeParse(data);
         if (parsed.success) this.emit("getPlayer", parsed.data);
+      } else if ("location0" in first && "location1" in first) {
+        const parsed = CableArraySchema.safeParse(data);
+        if (parsed.success) this.emit("getCables", parsed.data);
+      } else if ("SwitchTag" in first || ("Primary" in first && "Secondary" in first)) {
+        const parsed = SwitchArraySchema.safeParse(data);
+        if (parsed.success) this.emit("getSwitches", parsed.data);
       }
     }
   }
@@ -263,5 +275,13 @@ export class FRMClient {
 
   async getGenerators(): Promise<FRMGenerator[]> {
     return this.fetchEndpoint("getGenerators", GeneratorArraySchema);
+  }
+
+  async getCables(): Promise<FRMCable[]> {
+    return this.fetchEndpoint("getCables", CableArraySchema);
+  }
+
+  async getSwitches(): Promise<FRMSwitch[]> {
+    return this.fetchEndpoint("getSwitches", SwitchArraySchema);
   }
 }

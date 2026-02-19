@@ -1,4 +1,3 @@
-```tsx
 import { useState, useCallback, type ReactNode } from "react";
 import {
   Lightbulb,
@@ -159,4 +158,3 @@ export function RecommendationBanner() {
     </div>
   );
 }
-```

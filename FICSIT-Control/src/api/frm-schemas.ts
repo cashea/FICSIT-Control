@@ -120,6 +120,31 @@ export const FRMGeneratorSchema = z.object({
   }).default({ CircuitGroupID: 0, CircuitID: 0, FuseTriggered: false, PowerConsumed: 0, MaxPowerConsumed: 0 }),
 }).passthrough();
 
+export const FRMCableSchema = z.object({
+  ID: z.string(),
+  Name: z.string(),
+  ClassName: z.string(),
+  location0: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+  Connected0: z.boolean(),
+  location1: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+  Connected1: z.boolean(),
+  Length: z.number(),
+}).passthrough();
+
+export const FRMSwitchSchema = z.object({
+  ID: z.string(),
+  Name: z.string(),
+  SwitchTag: z.string().default(""),
+  ClassName: z.string(),
+  IsOn: z.boolean(),
+  Connected0: z.number(),
+  Connected1: z.number(),
+  Primary: z.number(),
+  Secondary: z.number(),
+  Priority: z.number().default(-1),
+  location: z.object({ x: z.number(), y: z.number(), z: z.number(), rotation: z.number() }),
+}).passthrough();
+
 // Array schemas for validating endpoint responses
 export const PowerCircuitArraySchema = z.array(FRMPowerCircuitSchema);
 export const ProdStatArraySchema = z.array(FRMProdStatSchema);
@@ -127,3 +152,5 @@ export const StorageContainerArraySchema = z.array(FRMStorageContainerSchema);
 export const MachineArraySchema = z.array(FRMMachineSchema);
 export const PlayerArraySchema = z.array(FRMPlayerSchema);
 export const GeneratorArraySchema = z.array(FRMGeneratorSchema);
+export const CableArraySchema = z.array(FRMCableSchema);
+export const SwitchArraySchema = z.array(FRMSwitchSchema);

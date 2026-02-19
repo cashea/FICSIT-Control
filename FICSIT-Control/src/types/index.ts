@@ -33,3 +33,4 @@ export type {
   CommandStatusEvent,
   CommandLogEntry,
 } from "./control";
+export type { TaktPlanId, TaktPlan, TaktStage, TaktResult } from "./takt";

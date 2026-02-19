@@ -11,6 +11,7 @@ const DashboardView = lazy(() => import("./components/dashboard/DashboardView"))
 const PowerGridView = lazy(() => import("./components/power/PowerGridView"));
 const OneLineDiagramView = lazy(() => import("./components/sld/OneLineDiagramView"));
 const PlannerView = lazy(() => import("./components/planner/PlannerView"));
+const TaktPlannerView = lazy(() => import("./components/takt/TaktPlannerView"));
 const AIChat = lazy(() => import("./components/ai/AIChat"));
 
 function RecipesView() {
@@ -52,6 +53,7 @@ function App() {
                 {activeTab === "power" && <PowerGridView />}
                 {activeTab === "oneline" && <OneLineDiagramView />}
                 {activeTab === "planner" && <PlannerView />}
+                {activeTab === "takt" && <TaktPlannerView />}
                 {activeTab === "recipes" && <RecipesView />}
               </div>
             )}

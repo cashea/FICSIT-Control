@@ -9,6 +9,7 @@ const GENERATOR_CATEGORY_MAP: Record<string, GeneratorCategory> = {
   Build_GeneratorGeoThermal_C: "Geothermal",
   Build_GeneratorBiomass_Automated_C: "Biomass",
   Build_GeneratorBiomass_C: "Biomass",
+  Build_GeneratorIntegratedBiomass_C: "Biomass",
 };
 
 export const GENERATOR_COLORS: Record<GeneratorCategory, string> = {

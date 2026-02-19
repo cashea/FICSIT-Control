@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.ficsit.app)",
+      "WebFetch(domain:ficsit.app)",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}

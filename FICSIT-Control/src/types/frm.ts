@@ -94,7 +94,7 @@ export interface FRMPlayer {
 export interface FRMGeneratorFuel {
   Name: string;
   ClassName: string;
-  EnergyValue: number;
+  Amount: number;
 }
 
 export interface FRMGenerator {
@@ -102,16 +102,15 @@ export interface FRMGenerator {
   Name: string;
   ClassName: string;
   location: { x: number; y: number; z: number; rotation: number };
-  CircuitID: number;
   BaseProd: number;
   DynamicProdCapacity: number;
   RegulatedDemandProd: number;
-  IsFullBlast: boolean;
+  IsFullSpeed: boolean;
   CanStart: boolean;
   CurrentPotential: number;
   PowerProductionPotential: number;
   FuelAmount: number;
-  FuelResource: number;
+  FuelResource: string;
   NuclearWarning: string;
   GeoMinPower: number;
   GeoMaxPower: number;
@@ -122,5 +121,12 @@ export interface FRMGenerator {
     CurrentConsumed: number;
     MaxConsumed: number;
     PercentFull: number;
+  };
+  PowerInfo: {
+    CircuitGroupID: number;
+    CircuitID: number;
+    FuseTriggered: boolean;
+    PowerConsumed: number;
+    MaxPowerConsumed: number;
   };
 }

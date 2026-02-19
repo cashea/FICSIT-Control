@@ -21,7 +21,7 @@ export function CircuitDetail({
   const { powerCircuits, powerHistory, generators, machines } = useFactoryStore();
 
   const circuit = powerCircuits.find((c) => c.CircuitGroupID === circuitId);
-  const circuitGenerators = generators.filter((g) => g.CircuitID === circuitId);
+  const circuitGenerators = generators.filter((g) => g.PowerInfo.CircuitGroupID === circuitId);
   const consumers = getConsumersForCircuit(machines, circuitId);
 
   if (!circuit) {

@@ -11,6 +11,7 @@ const GENERATOR_TYPE_NAMES: Record<string, string> = {
   Build_GeneratorGeoThermal_C: "Geothermal",
   Build_GeneratorBiomass_Automated_C: "BiomassBurner",
   Build_GeneratorBiomass_C: "BiomassBurner",
+  Build_GeneratorIntegratedBiomass_C: "BiomassBurner",
 };
 
 /**

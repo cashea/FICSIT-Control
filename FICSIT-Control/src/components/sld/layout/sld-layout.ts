@@ -41,7 +41,7 @@ export function buildSLDGraph(
 
   for (const circuit of circuits) {
     const cId = circuit.CircuitGroupID;
-    const circuitGens = generators.filter((g) => g.CircuitID === cId);
+    const circuitGens = generators.filter((g) => g.PowerInfo.CircuitGroupID === cId);
     const genGroups = groupGeneratorsByCategory(circuitGens);
     const consumerGroups = getConsumersForCircuit(machines, cId)
       .slice(0, MAX_CONSUMER_GROUPS);

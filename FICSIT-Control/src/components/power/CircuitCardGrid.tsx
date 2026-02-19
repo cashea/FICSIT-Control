@@ -21,7 +21,7 @@ export function CircuitCardGrid({
             key={circuit.CircuitGroupID}
             circuit={circuit}
             generators={generators.filter(
-              (g) => g.CircuitID === circuit.CircuitGroupID,
+              (g) => g.PowerInfo.CircuitGroupID === circuit.CircuitGroupID,
             )}
             onClick={() => onSelectCircuit(circuit.CircuitGroupID)}
           />

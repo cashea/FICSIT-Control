@@ -47,7 +47,7 @@ export function SingleLineDiagram({ onCircuitSelect }: SingleLineDiagramProps) {
   const structuralKey = useMemo(() => {
     const circuitIds = powerCircuits.map((c) => c.CircuitGroupID).sort().join(",");
     const genKey = generators
-      .map((g) => `${g.ClassName}:${g.CircuitID}`)
+      .map((g) => `${g.ClassName}:${g.PowerInfo.CircuitGroupID}`)
       .sort()
       .join(",");
     const machineTypes = Object.keys(machines).sort().join(",");

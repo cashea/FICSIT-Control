@@ -81,8 +81,8 @@ function GeneratorGroupSection({ group }: { group: GeneratorGroup }) {
 }
 
 function GeneratorRow({ gen }: { gen: FRMGenerator }) {
-  const clockPct = (gen.CurrentPotential * 100).toFixed(0);
-  const isOverclocked = gen.CurrentPotential > 1;
+  const clockPct = gen.CurrentPotential.toFixed(0);
+  const isOverclocked = gen.CurrentPotential > 100;
   const hasNuclearWarning = gen.NuclearWarning && gen.NuclearWarning !== "";
   const isGeo = gen.GeoMaxPower > 0;
 

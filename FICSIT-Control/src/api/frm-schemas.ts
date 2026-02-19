@@ -87,23 +87,22 @@ export const FRMGeneratorSchema = z.object({
   Name: z.string(),
   ClassName: z.string(),
   location: z.object({ x: z.number(), y: z.number(), z: z.number(), rotation: z.number() }),
-  CircuitID: z.number(),
   BaseProd: z.number(),
   DynamicProdCapacity: z.number(),
   RegulatedDemandProd: z.number(),
-  IsFullBlast: z.boolean(),
+  IsFullSpeed: z.boolean(),
   CanStart: z.boolean(),
   CurrentPotential: z.number(),
   PowerProductionPotential: z.number(),
   FuelAmount: z.number(),
-  FuelResource: z.number(),
+  FuelResource: z.string(),
   NuclearWarning: z.string().default(""),
   GeoMinPower: z.number().default(0),
   GeoMaxPower: z.number().default(0),
   AvailableFuel: z.array(z.object({
     Name: z.string(),
     ClassName: z.string(),
-    EnergyValue: z.number(),
+    Amount: z.number(),
   })).default([]),
   Supplement: z.object({
     Name: z.string(),
@@ -112,7 +111,14 @@ export const FRMGeneratorSchema = z.object({
     MaxConsumed: z.number(),
     PercentFull: z.number(),
   }).default({ Name: "", ClassName: "", CurrentConsumed: 0, MaxConsumed: 0, PercentFull: 0 }),
-});
+  PowerInfo: z.object({
+    CircuitGroupID: z.number(),
+    CircuitID: z.number(),
+    FuseTriggered: z.boolean(),
+    PowerConsumed: z.number(),
+    MaxPowerConsumed: z.number(),
+  }).default({ CircuitGroupID: 0, CircuitID: 0, FuseTriggered: false, PowerConsumed: 0, MaxPowerConsumed: 0 }),
+}).passthrough();
 
 // Array schemas for validating endpoint responses
 export const PowerCircuitArraySchema = z.array(FRMPowerCircuitSchema);

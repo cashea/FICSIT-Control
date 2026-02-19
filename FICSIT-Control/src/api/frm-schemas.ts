@@ -145,6 +145,20 @@ export const FRMSwitchSchema = z.object({
   location: z.object({ x: z.number(), y: z.number(), z: z.number(), rotation: z.number() }),
 }).passthrough();
 
+export const FRMBeltSchema = z.object({
+  ID: z.string(),
+  Name: z.string(),
+  ClassName: z.string(),
+  location0: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+  Connected0: z.boolean(),
+  location1: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+  Connected1: z.boolean(),
+  Length: z.number(),
+  ItemsPerMinute: z.number(),
+}).passthrough();
+
+export const BeltArraySchema = z.array(FRMBeltSchema);
+
 // Array schemas for validating endpoint responses
 export const PowerCircuitArraySchema = z.array(FRMPowerCircuitSchema);
 export const ProdStatArraySchema = z.array(FRMProdStatSchema);

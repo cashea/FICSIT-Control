@@ -28,7 +28,13 @@ export const useTaktStore = create<TaktState>()(
       createPlan: (data) => {
         const id = crypto.randomUUID();
         const now = new Date().toISOString();
-        const plan: TaktPlan = { ...data, id, createdAt: now, updatedAt: now };
+        const plan: TaktPlan = {
+          ...data,
+          id,
+          liveSource: data.liveSource ?? { type: "manual" },
+          createdAt: now,
+          updatedAt: now,
+        };
         set((state) => ({
           plans: { ...state.plans, [id]: plan },
           selectedPlanId: id,
@@ -71,10 +77,20 @@ export const useTaktStore = create<TaktState>()(
     }),
     {
       name: "satisfactory-takt",
+      version: 1,
       partialize: (state) => ({
         plans: state.plans,
         stages: state.stages,
       }),
+      migrate: (persisted: unknown) => {
+        const state = persisted as { plans: Record<string, TaktPlan>; stages: Record<string, TaktStage[]> };
+        for (const plan of Object.values(state.plans)) {
+          if (!(plan as Record<string, unknown>).liveSource) {
+            plan.liveSource = { type: "manual" };
+          }
+        }
+        return state;
+      },
     },
   ),
 );

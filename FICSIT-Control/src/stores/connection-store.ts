@@ -84,6 +84,9 @@ export const useConnectionStore = create<ConnectionState>()(
               case "getGenerators":
                 factory.setGenerators(data as never[]);
                 break;
+              case "getBelts":
+                factory.setBelts(data as never[]);
+                break;
               case "getCables":
                 factory.setCables(data as never[]);
                 break;
@@ -100,11 +103,12 @@ export const useConnectionStore = create<ConnectionState>()(
             if (!c) return;
             const factory = useFactoryStore.getState();
 
-            const [power, prod, storage, generators, cables, switches] = await Promise.allSettled([
+            const [power, prod, storage, generators, belts, cables, switches] = await Promise.allSettled([
               c.getPower(),
               c.getProdStats(),
               c.getStorageInv(),
               c.getGenerators(),
+              c.getBelts(),
               c.getCables(),
               c.getSwitches(),
             ]);
@@ -113,6 +117,7 @@ export const useConnectionStore = create<ConnectionState>()(
             if (prod.status === "fulfilled") factory.setProductionStats(prod.value);
             if (storage.status === "fulfilled") factory.setInventory(storage.value);
             if (generators.status === "fulfilled") factory.setGenerators(generators.value);
+            if (belts.status === "fulfilled") factory.setBelts(belts.value);
             if (cables.status === "fulfilled") factory.setCables(cables.value);
             if (switches.status === "fulfilled") factory.setSwitches(switches.value);
 

@@ -21,6 +21,7 @@ export type {
   FRMPlayer,
   FRMGenerator,
   FRMGeneratorFuel,
+  FRMBelt,
   FRMCable,
   FRMSwitch,
 } from "./frm";
@@ -33,4 +34,4 @@ export type {
   CommandStatusEvent,
   CommandLogEntry,
 } from "./control";
-export type { TaktPlanId, TaktPlan, TaktStage, TaktResult } from "./takt";
+export type { TaktPlanId, TaktPlan, TaktStage, TaktResult, TaktLiveSource, BeltConstraint } from "./takt";

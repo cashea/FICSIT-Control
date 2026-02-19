@@ -6,6 +6,7 @@ import type {
   FRMMachine,
   FRMPlayer,
   FRMGenerator,
+  FRMBelt,
   FRMCable,
   FRMSwitch,
 } from "../types";
@@ -16,6 +17,7 @@ import {
   MachineArraySchema,
   PlayerArraySchema,
   GeneratorArraySchema,
+  BeltArraySchema,
   CableArraySchema,
   SwitchArraySchema,
 } from "./frm-schemas";
@@ -160,6 +162,9 @@ export class FRMClient {
       } else if ("PlayerHP" in first) {
         const parsed = PlayerArraySchema.safeParse(data);
         if (parsed.success) this.emit("getPlayer", parsed.data);
+      } else if ("ItemsPerMinute" in first) {
+        const parsed = BeltArraySchema.safeParse(data);
+        if (parsed.success) this.emit("getBelts", parsed.data);
       } else if ("location0" in first && "location1" in first) {
         const parsed = CableArraySchema.safeParse(data);
         if (parsed.success) this.emit("getCables", parsed.data);
@@ -283,5 +288,9 @@ export class FRMClient {
 
   async getSwitches(): Promise<FRMSwitch[]> {
     return this.fetchEndpoint("getSwitches", SwitchArraySchema);
+  }
+
+  async getBelts(): Promise<FRMBelt[]> {
+    return this.fetchEndpoint("getBelts", BeltArraySchema);
   }
 }

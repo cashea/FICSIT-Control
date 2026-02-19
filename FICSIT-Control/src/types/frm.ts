@@ -108,6 +108,18 @@ export interface FRMCable {
   Length: number;
 }
 
+export interface FRMBelt {
+  ID: string;
+  Name: string;
+  ClassName: string;
+  location0: { x: number; y: number; z: number };
+  Connected0: boolean;
+  location1: { x: number; y: number; z: number };
+  Connected1: boolean;
+  Length: number;
+  ItemsPerMinute: number; // belt CAPACITY (60/120/270/480/780)
+}
+
 export interface FRMSwitch {
   ID: string;
   Name: string;

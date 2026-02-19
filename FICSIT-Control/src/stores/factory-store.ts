@@ -5,6 +5,7 @@ import type {
   FRMStorageContainer,
   FRMMachine,
   FRMGenerator,
+  FRMBelt,
   FRMCable,
   FRMSwitch,
 } from "../types";
@@ -47,6 +48,7 @@ interface FactoryState {
   inventory: FRMStorageContainer[];
   machines: Record<string, FRMMachine[]>;
   generators: FRMGenerator[];
+  belts: FRMBelt[];
   cables: FRMCable[];
   switches: FRMSwitch[];
   productionHistory: Record<MachineKey, ProductionSnapshot[]>;
@@ -56,6 +58,7 @@ interface FactoryState {
   setInventory: (data: FRMStorageContainer[]) => void;
   setMachines: (type: string, data: FRMMachine[]) => void;
   setGenerators: (data: FRMGenerator[]) => void;
+  setBelts: (data: FRMBelt[]) => void;
   setCables: (data: FRMCable[]) => void;
   setSwitches: (data: FRMSwitch[]) => void;
   reset: () => void;
@@ -68,6 +71,7 @@ const initialState = {
   inventory: [] as FRMStorageContainer[],
   machines: {} as Record<string, FRMMachine[]>,
   generators: [] as FRMGenerator[],
+  belts: [] as FRMBelt[],
   cables: [] as FRMCable[],
   switches: [] as FRMSwitch[],
   productionHistory: {} as Record<MachineKey, ProductionSnapshot[]>,
@@ -134,6 +138,7 @@ export const useFactoryStore = create<FactoryState>()((set) => ({
       };
     }),
   setGenerators: (data) => set({ generators: data }),
+  setBelts: (data) => set({ belts: data }),
   setCables: (data) => set({ cables: data }),
   setSwitches: (data) => set({ switches: data }),
   reset: () => set(initialState),

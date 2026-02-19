@@ -83,13 +83,18 @@ export const useFactoryStore = create<FactoryState>()((set) => ({
   setPowerCircuits: (data) =>
     set((state) => {
       const now = Date.now();
+      let historyChanged = false;
       const history = { ...state.powerHistory };
       for (const c of data) {
         const id = c.CircuitGroupID;
         const prev = history[id] ?? [];
         const last = prev[prev.length - 1];
         // Skip if too soon after last snapshot, or if timestamp would go backward
-        if (last && (now - last.time < MIN_SNAP_INTERVAL || now <= last.time)) continue;
+        if (
+          last &&
+          (now - last.time < MIN_SNAP_INTERVAL || now <= last.time)
+        )
+          continue;
         const snap: PowerSnapshot = {
           time: now,
           production: c.PowerProduction,
@@ -97,14 +102,19 @@ export const useFactoryStore = create<FactoryState>()((set) => ({
           capacity: c.PowerCapacity,
         };
         history[id] = [...prev.slice(-(MAX_HISTORY - 1)), snap];
+        historyChanged = true;
       }
-      return { powerCircuits: data, powerHistory: history };
+      return {
+        powerCircuits: data,
+        ...(historyChanged ? { powerHistory: history } : {}),
+      };
     }),
   setProductionStats: (data) => set({ productionStats: data }),
   setInventory: (data) => set({ inventory: data }),
   setMachines: (type, data) =>
     set((state) => {
       const now = Date.now();
+      let historyChanged = false;
       const history = { ...state.productionHistory };
       for (const m of data) {
         const key = machineKey(m);
@@ -131,10 +141,11 @@ export const useFactoryStore = create<FactoryState>()((set) => ({
           isProducing: m.IsProducing,
         };
         history[key] = [...prev.slice(-(MAX_HISTORY - 1)), snap];
+        historyChanged = true;
       }
       return {
         machines: { ...state.machines, [type]: data },
-        productionHistory: history,
+        ...(historyChanged ? { productionHistory: history } : {}),
       };
     }),
   setGenerators: (data) => set({ generators: data }),

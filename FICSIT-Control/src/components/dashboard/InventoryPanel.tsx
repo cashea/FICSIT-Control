@@ -2,6 +2,9 @@ import { Package } from "lucide-react";
 import { useState } from "react";
 import { useFactoryStore } from "../../stores/factory-store";
 import { useConnectionStore } from "../../stores/connection-store";
+import { ITEMS } from "../../data/items";
+import { CATEGORY_COLORS, CATEGORY_LABELS } from "../recipe-tree/recipe-tree-theme";
+import type { ItemCategory } from "../../types";
 
 interface AggregatedItem {
   name: string;
@@ -9,6 +12,11 @@ interface AggregatedItem {
   totalAmount: number;
   totalCapacity: number;
   containerCount: number;
+  category: ItemCategory | null;
+}
+
+function frmClassToItemId(className: string): string {
+  return className.replace(/^Desc_/, "").replace(/_C$/, "");
 }
 
 export function InventoryPanel() {
@@ -35,12 +43,15 @@ export function InventoryPanel() {
         existing.totalCapacity += item.MaxAmount;
         existing.containerCount++;
       } else {
+        const itemId = frmClassToItemId(item.ClassName);
+        const gameItem = ITEMS[itemId];
         aggregated.set(item.ClassName, {
           name: item.Name,
           className: item.ClassName,
           totalAmount: item.Amount,
           totalCapacity: item.MaxAmount,
           containerCount: 1,
+          category: gameItem?.category ?? null,
         });
       }
     }
@@ -74,23 +85,39 @@ export function InventoryPanel() {
         </div>
       ) : (
         <div className="space-y-1">
-          {items.map((item) => (
-            <div
-              key={item.className}
-              className="flex items-center justify-between p-3 bg-[var(--color-satisfactory-panel)] rounded border border-[var(--color-satisfactory-border)]"
-            >
-              <div>
-                <span className="text-sm font-medium">{item.name}</span>
-                <span className="ml-2 text-xs text-[var(--color-satisfactory-text-dim)]">
-                  in {item.containerCount} container
-                  {item.containerCount > 1 ? "s" : ""}
+          {items.map((item) => {
+            const color = item.category
+              ? CATEGORY_COLORS[item.category]
+              : "var(--color-satisfactory-text-dim)";
+            return (
+              <div
+                key={item.className}
+                className="flex items-center justify-between p-3 bg-[var(--color-satisfactory-panel)] rounded border border-[var(--color-satisfactory-border)]"
+                style={{ borderLeftWidth: 3, borderLeftColor: color }}
+              >
+                <div className="flex items-center gap-2">
+                  <div>
+                    <span className="text-sm font-medium">{item.name}</span>
+                    <span className="ml-2 text-xs text-[var(--color-satisfactory-text-dim)]">
+                      in {item.containerCount} container
+                      {item.containerCount > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  {item.category && (
+                    <span
+                      className="text-[10px] px-1.5 py-0.5 rounded-full"
+                      style={{ backgroundColor: color + "22", color }}
+                    >
+                      {CATEGORY_LABELS[item.category]}
+                    </span>
+                  )}
+                </div>
+                <span className="text-sm font-mono">
+                  {item.totalAmount.toLocaleString()}
                 </span>
               </div>
-              <span className="text-sm font-mono">
-                {item.totalAmount.toLocaleString()}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

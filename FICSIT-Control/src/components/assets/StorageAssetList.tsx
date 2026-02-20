@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { Package, ArrowUpDown } from "lucide-react";
 import { useFactoryStore } from "../../stores/factory-store";
-import type { FRMStorageContainer } from "../../types";
+import { ITEMS } from "../../data/items";
+import { CATEGORY_COLORS } from "../recipe-tree/recipe-tree-theme";
+import type { FRMStorageContainer, FRMInventoryItem } from "../../types";
 
 type SortKey = "name" | "fullness" | "items";
 
 function getFullness(container: FRMStorageContainer): number {
   const slotsWithItems = container.Inventory.filter((i) => i.MaxAmount > 0);
   if (slotsWithItems.length === 0) return 0;
-  
-  const totalFullness = slotsWithItems.reduce(
-    (sum, item) => sum + (item.Amount / item.MaxAmount),
-    0
-  );
-  return (totalFullness / slotsWithItems.length) * 100;
+
+  const totalAmount = slotsWithItems.reduce((sum, item) => sum + item.Amount, 0);
+  const totalCapacity = slotsWithItems.reduce((sum, item) => sum + item.MaxAmount, 0);
+  return Math.min((totalAmount / totalCapacity) * 100, 100);
 }
 
 function sortContainers(
@@ -28,8 +28,8 @@ function sortContainers(
       case "fullness":
         return getFullness(a) - getFullness(b);
       case "items":
-        return a.Inventory.filter((i) => i.Amount > 0).length -
-          b.Inventory.filter((i) => i.Amount > 0).length;
+        return a.Inventory.reduce((s, i) => s + i.Amount, 0) -
+          b.Inventory.reduce((s, i) => s + i.Amount, 0);
     }
   });
   return asc ? sorted : sorted.reverse();
@@ -45,6 +45,12 @@ function fullnessBarColor(percent: number): string {
   if (percent > 90) return "bg-[var(--color-disconnected)]";
   if (percent > 70) return "bg-[var(--color-warning)]";
   return "bg-[var(--color-satisfactory-orange)]";
+}
+
+function itemColor(item: FRMInventoryItem): string | undefined {
+  const itemId = item.ClassName.replace(/^Desc_/, "").replace(/_C$/, "");
+  const gameItem = ITEMS[itemId];
+  return gameItem ? CATEGORY_COLORS[gameItem.category] : undefined;
 }
 
 export function StorageAssetList({ search }: { search: string }) {
@@ -104,7 +110,7 @@ export function StorageAssetList({ search }: { search: string }) {
               onClick={() => toggleSort("items")}
               className="flex items-center gap-1 hover:text-[var(--color-satisfactory-text)] w-20 justify-end"
             >
-              Items
+              Qty
               {sortKey === "items" && <ArrowUpDown className="w-3 h-3" />}
             </button>
             <button
@@ -120,19 +126,34 @@ export function StorageAssetList({ search }: { search: string }) {
           {/* Rows */}
           {sorted.map((container, i) => {
             const fullness = getFullness(container);
-            const itemCount = container.Inventory.filter((item) => item.Amount > 0).length;
-            const slotCount = container.Inventory.length;
+            const stocked = container.Inventory.filter((item) => item.Amount > 0);
+            const totalQty = stocked.reduce((s, item) => s + item.Amount, 0);
 
             return (
               <div
                 key={i}
                 className="flex items-center gap-4 px-4 py-2 text-xs border-b border-[var(--color-satisfactory-border)] last:border-b-0"
               >
-                <span className="flex-1 text-[var(--color-satisfactory-text)] truncate">
-                  {container.Name}
-                </span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[var(--color-satisfactory-text)] truncate block">
+                    {container.Name}
+                  </span>
+                  {stocked.length > 0 && (
+                    <span className="text-[10px] truncate block">
+                      {stocked.map((item, j) => (
+                        <span key={j}>
+                          {j > 0 && <span className="text-[var(--color-satisfactory-text-dim)]">, </span>}
+                          <span style={{ color: itemColor(item) ?? "var(--color-satisfactory-text-dim)" }}>
+                            {item.Name}
+                          </span>
+                          <span className="text-[var(--color-satisfactory-text-dim)]"> ×{item.Amount}</span>
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </div>
                 <span className="w-20 text-right text-[var(--color-satisfactory-text-dim)]">
-                  {itemCount}/{slotCount} slots
+                  {totalQty.toLocaleString()}
                 </span>
                 <div className="w-32 flex items-center gap-2 justify-end">
                   <div className="w-16 h-1.5 bg-[var(--color-satisfactory-dark)] rounded-full overflow-hidden">

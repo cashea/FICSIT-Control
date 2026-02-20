@@ -6,11 +6,22 @@ import {
   summarizeMachines,
 } from "./system-prompt";
 
+interface PreviousRecommendation {
+  text: string;
+  timestamp: number;
+  factorySnapshot: FactorySnapshot;
+}
+
 const SYSTEM_PROMPT = `You are an expert Satisfactory factory advisor. Based on the live factory data below, provide ONE concise, actionable recommendation to improve the factory. Focus on the highest-impact issue: tripped fuses, idle machines, production bottlenecks, power headroom, or storage problems. Be specific with numbers. Do NOT use markdown formatting or bullet points. Respond with a single sentence of 20-40 words.
 
-When you reference a specific machine type, wrap it with double brackets containing the endpoint name and display label separated by a pipe, like: [[getSmelter|Smelters]]. Valid endpoint names: getAssembler, getSmelter, getConstructor, getRefinery, getManufacturer, getFoundry, getBlender, getPackager, getParticleAccelerator. Example: "3 of your [[getSmelter|Smelters]] are idle — assign recipes or pause them to save 45 MW."`;
+When you reference a specific machine type, wrap it with double brackets containing the endpoint name and display label separated by a pipe, like: [[getSmelter|Smelters]]. Valid endpoint names: getAssembler, getSmelter, getConstructor, getRefinery, getManufacturer, getFoundry, getBlender, getPackager, getParticleAccelerator. Example: "3 of your [[getSmelter|Smelters]] are idle — assign recipes or pause them to save 45 MW."
 
-export function buildRecommendationPrompt(factory: FactorySnapshot): {
+IMPORTANT: If a previous recommendation was provided, you MUST verify whether the issue still exists by comparing the previous factory state with the current state. Only make the same suggestion if the problem persists. If the previous issue has been resolved or improved, acknowledge this briefly and suggest a different improvement, or state "No critical issues detected" if factory performance is good.`;
+
+export function buildRecommendationPrompt(
+  factory: FactorySnapshot,
+  previousRecommendation: PreviousRecommendation | null,
+): {
   systemPrompt: string;
   userMessage: string;
 } {
@@ -21,8 +32,30 @@ export function buildRecommendationPrompt(factory: FactorySnapshot): {
     `<machines>\n${summarizeMachines(factory.machines)}\n</machines>`,
   ].join("\n\n");
 
+  let userMessage = `Here is the current factory state:\n\n${sections}`;
+
+  if (previousRecommendation) {
+    const prevSections = [
+      `<power>\n${summarizePower(previousRecommendation.factorySnapshot.powerCircuits)}\n</power>`,
+      `<production>\n${summarizeProduction(previousRecommendation.factorySnapshot.productionStats)}\n</production>`,
+      `<inventory>\n${summarizeInventory(previousRecommendation.factorySnapshot.inventory)}\n</inventory>`,
+      `<machines>\n${summarizeMachines(previousRecommendation.factorySnapshot.machines)}\n</machines>`,
+    ].join("\n\n");
+
+    userMessage += `\n\n<previous-recommendation>
+My previous recommendation was: "${previousRecommendation.text}"
+
+Factory state when that recommendation was made:
+${prevSections}
+</previous-recommendation>
+
+First, check if the issue I mentioned previously still exists by comparing the previous factory state with the current state. If the problem has been resolved or significantly improved, acknowledge this. Then provide your recommendation.`;
+  } else {
+    userMessage += `\n\nWhat is the single most impactful action I should take right now?`;
+  }
+
   return {
     systemPrompt: SYSTEM_PROMPT,
-    userMessage: `Here is the current factory state:\n\n${sections}\n\nWhat is the single most impactful action I should take right now?`,
+    userMessage,
   };
 }

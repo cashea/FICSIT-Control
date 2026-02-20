@@ -5,14 +5,22 @@ import { useChatStore } from "../stores/chat-store";
 import { useFactoryStore } from "../stores/factory-store";
 import { useConnectionStore } from "../stores/connection-store";
 import type { ChatMessage } from "../ai/types";
+import type { FactorySnapshot } from "../ai/system-prompt";
 
 export type RecommendationStatus = "idle" | "loading" | "success" | "error";
+
+interface PreviousRecommendation {
+  text: string;
+  timestamp: number;
+  factorySnapshot: FactorySnapshot;
+}
 
 interface RecommendationState {
   status: RecommendationStatus;
   text: string | null;
   error: string | null;
   lastUpdated: number | null;
+  previousRecommendation: PreviousRecommendation | null;
 }
 
 const REFRESH_INTERVAL_MS = 2 * 60 * 1000;
@@ -23,6 +31,7 @@ export function useRecommendation() {
     text: null,
     error: null,
     lastUpdated: null,
+    previousRecommendation: null,
   });
 
   const abortRef = useRef<AbortController | null>(null);
@@ -54,13 +63,26 @@ export function useRecommendation() {
     try {
       const provider = createProvider(providerConfig);
       const factory = useFactoryStore.getState();
-      const { systemPrompt, userMessage } = buildRecommendationPrompt({
+      const factorySnapshot: FactorySnapshot = {
         isConnected: true,
         powerCircuits: factory.powerCircuits,
         productionStats: factory.productionStats,
         inventory: factory.inventory,
         machines: factory.machines,
+      };
+      
+      // Get the current previous recommendation from state
+      const currentState = await new Promise<RecommendationState>((resolve) => {
+        setState((s) => {
+          resolve(s);
+          return s;
+        });
       });
+      
+      const { systemPrompt, userMessage } = buildRecommendationPrompt(
+        factorySnapshot,
+        currentState.previousRecommendation,
+      );
 
       const messages: ChatMessage[] = [
         {
@@ -81,11 +103,17 @@ export function useRecommendation() {
       }
 
       if (mountedRef.current) {
+        const newText = content.trim();
         setState({
           status: "success",
-          text: content.trim(),
+          text: newText,
           error: null,
           lastUpdated: Date.now(),
+          previousRecommendation: {
+            text: newText,
+            timestamp: Date.now(),
+            factorySnapshot,
+          },
         });
       }
     } catch (e) {

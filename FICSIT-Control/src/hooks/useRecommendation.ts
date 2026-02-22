@@ -24,6 +24,7 @@ interface RecommendationState {
 }
 
 const REFRESH_INTERVAL_MS = 2 * 60 * 1000;
+const MAX_RECENT_RECOMMENDATIONS = 5;
 
 export function useRecommendation() {
   const [state, setState] = useState<RecommendationState>({
@@ -37,6 +38,7 @@ export function useRecommendation() {
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
+  const recentRef = useRef<string[]>([]);
 
   const providerConfig = useChatStore((s) => s.providerConfig);
   const connectionStatus = useConnectionStore((s) => s.status);
@@ -70,7 +72,7 @@ export function useRecommendation() {
         inventory: factory.inventory,
         machines: factory.machines,
       };
-      
+
       // Get the current previous recommendation from state
       const currentState = await new Promise<RecommendationState>((resolve) => {
         setState((s) => {
@@ -78,10 +80,11 @@ export function useRecommendation() {
           return s;
         });
       });
-      
+
       const { systemPrompt, userMessage } = buildRecommendationPrompt(
         factorySnapshot,
         currentState.previousRecommendation,
+        recentRef.current,
       );
 
       const messages: ChatMessage[] = [
@@ -103,14 +106,19 @@ export function useRecommendation() {
       }
 
       if (mountedRef.current) {
-        const newText = content.trim();
+        const trimmed = content.trim();
+        // Track recent recommendations so the AI doesn't repeat itself
+        recentRef.current = [
+          ...recentRef.current.slice(-(MAX_RECENT_RECOMMENDATIONS - 1)),
+          trimmed,
+        ];
         setState({
           status: "success",
-          text: newText,
+          text: trimmed,
           error: null,
           lastUpdated: Date.now(),
           previousRecommendation: {
-            text: newText,
+            text: trimmed,
             timestamp: Date.now(),
             factorySnapshot,
           },

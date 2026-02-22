@@ -1,7 +1,9 @@
-import { Zap, AlertTriangle, Battery } from "lucide-react";
+import { useState } from "react";
+import { Zap, AlertTriangle, Battery, Flame, ChevronDown, ChevronRight } from "lucide-react";
 import { useFactoryStore } from "../../stores/factory-store";
 import { formatMW } from "../../utils/format";
-import type { FRMPowerCircuit } from "../../types";
+import { LocationBadge } from "./LocationBadge";
+import type { FRMPowerCircuit, FRMGenerator } from "../../types";
 
 function utilizationColor(percent: number): string {
   if (percent > 90) return "text-[var(--color-disconnected)]";
@@ -15,7 +17,95 @@ function utilizationBarColor(percent: number): string {
   return "bg-[var(--color-connected)]";
 }
 
-function CircuitCard({ circuit }: { circuit: FRMPowerCircuit }) {
+interface GeneratorGroup {
+  name: string;
+  count: number;
+  totalProd: number;
+  fuelResource: string;
+  generators: FRMGenerator[];
+}
+
+function groupGenerators(generators: FRMGenerator[]): GeneratorGroup[] {
+  const groups = new Map<string, GeneratorGroup>();
+  for (const g of generators) {
+    const existing = groups.get(g.Name);
+    if (existing) {
+      existing.count++;
+      existing.totalProd += g.RegulatedDemandProd;
+      existing.generators.push(g);
+    } else {
+      groups.set(g.Name, {
+        name: g.Name,
+        count: 1,
+        totalProd: g.RegulatedDemandProd,
+        fuelResource: g.FuelResource,
+        generators: [g],
+      });
+    }
+  }
+  return Array.from(groups.values()).sort((a, b) => b.totalProd - a.totalProd);
+}
+
+function GeneratorGroupRow({ group }: { group: GeneratorGroup }) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Single generator — show location inline
+  if (group.count === 1) {
+    const g = group.generators[0];
+    return (
+      <div className="flex items-center justify-between text-xs">
+        <span>{group.name}</span>
+        <div className="flex items-center gap-3">
+          <LocationBadge location={g.location} />
+          {group.fuelResource && (
+            <span className="text-[var(--color-satisfactory-text-dim)]">{group.fuelResource}</span>
+          )}
+          <span className="text-[var(--color-connected)] font-medium w-16 text-right">
+            {formatMW(group.totalProd)}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Multiple generators — expandable group
+  return (
+    <div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between text-xs hover:text-[var(--color-satisfactory-text)] transition-colors"
+      >
+        <span className="flex items-center gap-1">
+          {expanded
+            ? <ChevronDown className="w-3 h-3 text-[var(--color-satisfactory-text-dim)]" />
+            : <ChevronRight className="w-3 h-3 text-[var(--color-satisfactory-text-dim)]" />}
+          {group.name}
+          <span className="text-[var(--color-satisfactory-text-dim)]">x{group.count}</span>
+        </span>
+        <div className="flex items-center gap-3">
+          {group.fuelResource && (
+            <span className="text-[var(--color-satisfactory-text-dim)]">{group.fuelResource}</span>
+          )}
+          <span className="text-[var(--color-connected)] font-medium w-16 text-right">
+            {formatMW(group.totalProd)}
+          </span>
+        </div>
+      </button>
+      {expanded && (
+        <div className="ml-4 mt-1 space-y-0.5">
+          {group.generators.map((g) => (
+            <div key={g.ID} className="flex items-center justify-between text-xs text-[var(--color-satisfactory-text-dim)]">
+              <LocationBadge location={g.location} />
+              <span>{formatMW(g.RegulatedDemandProd)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CircuitCard({ circuit, generators }: { circuit: FRMPowerCircuit; generators: FRMGenerator[] }) {
   const utilization =
     circuit.PowerCapacity > 0
       ? (circuit.PowerConsumed / circuit.PowerCapacity) * 100
@@ -118,12 +208,41 @@ function CircuitCard({ circuit }: { circuit: FRMPowerCircuit }) {
           </div>
         </div>
       )}
+
+      {/* Generators section */}
+      {generators.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-[var(--color-satisfactory-border)]">
+          <div className="flex items-center gap-2 mb-2">
+            <Flame className="w-3.5 h-3.5 text-[var(--color-satisfactory-orange)]" />
+            <span className="text-xs text-[var(--color-satisfactory-text-dim)]">
+              Generators
+            </span>
+            <span className="text-xs font-medium">
+              {generators.length}
+            </span>
+          </div>
+          <div className="space-y-1">
+            {groupGenerators(generators).map((group) => (
+              <GeneratorGroupRow key={group.name} group={group} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export function PowerCircuitList({ search }: { search: string }) {
-  const { powerCircuits } = useFactoryStore();
+  const { powerCircuits, generators } = useFactoryStore();
+
+  // Group generators by circuit ID
+  const generatorsByCircuit = new Map<number, FRMGenerator[]>();
+  for (const g of generators) {
+    const circuitId = g.PowerInfo.CircuitGroupID;
+    const list = generatorsByCircuit.get(circuitId);
+    if (list) list.push(g);
+    else generatorsByCircuit.set(circuitId, [g]);
+  }
 
   const filtered = search
     ? powerCircuits.filter((c) =>
@@ -164,7 +283,11 @@ export function PowerCircuitList({ search }: { search: string }) {
       </h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {filtered.map((circuit) => (
-          <CircuitCard key={circuit.CircuitGroupID} circuit={circuit} />
+          <CircuitCard
+            key={circuit.CircuitGroupID}
+            circuit={circuit}
+            generators={generatorsByCircuit.get(circuit.CircuitGroupID) ?? []}
+          />
         ))}
       </div>
     </div>

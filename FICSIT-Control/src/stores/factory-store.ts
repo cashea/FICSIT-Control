@@ -8,6 +8,7 @@ import type {
   FRMBelt,
   FRMCable,
   FRMSwitch,
+  FRMRecipe,
 } from "../types";
 import { machineKey, type MachineKey } from "../utils/machine-id";
 
@@ -51,6 +52,7 @@ interface FactoryState {
   belts: FRMBelt[];
   cables: FRMCable[];
   switches: FRMSwitch[];
+  unlockedRecipes: FRMRecipe[];
   productionHistory: Record<MachineKey, ProductionSnapshot[]>;
 
   setPowerCircuits: (data: FRMPowerCircuit[]) => void;
@@ -61,6 +63,7 @@ interface FactoryState {
   setBelts: (data: FRMBelt[]) => void;
   setCables: (data: FRMCable[]) => void;
   setSwitches: (data: FRMSwitch[]) => void;
+  setUnlockedRecipes: (data: FRMRecipe[]) => void;
   reset: () => void;
 }
 
@@ -74,6 +77,7 @@ const initialState = {
   belts: [] as FRMBelt[],
   cables: [] as FRMCable[],
   switches: [] as FRMSwitch[],
+  unlockedRecipes: [] as FRMRecipe[],
   productionHistory: {} as Record<MachineKey, ProductionSnapshot[]>,
 };
 
@@ -152,5 +156,6 @@ export const useFactoryStore = create<FactoryState>()((set) => ({
   setBelts: (data) => set({ belts: data }),
   setCables: (data) => set({ cables: data }),
   setSwitches: (data) => set({ switches: data }),
+  setUnlockedRecipes: (data) => set({ unlockedRecipes: data }),
   reset: () => set(initialState),
 }));

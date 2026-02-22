@@ -54,7 +54,7 @@ export function RecipeOverrides() {
       <p className="text-xs text-[var(--color-satisfactory-text-dim)]">
         Override default recipes with alternates for intermediate items.
       </p>
-      <div className="space-y-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
         {overridableItems.map(({ itemId, name, recipes }) => {
           const currentRecipeId = recipeOverrides[itemId];
           const defaultRecipe = recipes.find((r) => !r.isAlternate);

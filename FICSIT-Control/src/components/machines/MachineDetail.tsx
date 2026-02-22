@@ -1,6 +1,8 @@
-import { ChevronLeft } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, Copy, Check, MessageSquare, Zap } from "lucide-react";
 import { useFactoryStore } from "../../stores/factory-store";
 import { findMachineByKey, type MachineKey } from "../../utils/machine-id";
+import { formatLocation, getTeleportCommand, getPakUtilityCommand } from "../../utils/format";
 import { ProductionHistoryChart } from "./ProductionHistoryChart";
 import { MachineControls } from "./MachineControls";
 import type { FRMMachine } from "../../types";
@@ -67,10 +69,7 @@ export function MachineDetail({ machineKey: key, onBack }: MachineDetailProps) {
           />
           <MetricCard label="Recipe" value={machine.Recipe || "None"} />
           <MetricCard label="Circuit" value={`#${machine.CircuitGroupID}`} />
-          <MetricCard
-            label="Location"
-            value={`${Math.round(machine.location.x)}, ${Math.round(machine.location.y)}, ${Math.round(machine.location.z)}`}
-          />
+          <LocationCard location={machine.location} />
         </div>
 
         {/* Production I/O */}
@@ -183,3 +182,108 @@ function IOSection({ title, items, mode }: {
     </div>
   );
 }
+
+function LocationCard({ location }: { location: { x: number; y: number; z: number } }) {
+  const [copiedConsole, setCopiedConsole] = useState(false);
+  const [copiedChat, setCopiedChat] = useState(false);
+
+  function handleCopyConsole() {
+    const cmd = getTeleportCommand(location);
+    navigator.clipboard.writeText(cmd).catch(() => {});
+    setCopiedConsole(true);
+    setTimeout(() => setCopiedConsole(false), 2000);
+  }
+
+  function handleCopyChat() {
+    const cmd = getPakUtilityCommand(location);
+    navigator.clipboard.writeText(cmd).catch(() => {});
+    setCopiedChat(true);
+    setTimeout(() => setCopiedChat(false), 2000);
+  }
+
+  async function handleAutoTeleport() {
+    // 400 unit Z-offset to prevent spawning in floor
+    const zOffset = 400;
+    const command = getPakUtilityCommand({
+      ...location,
+      z: location.z + zOffset
+    });
+
+    try {
+      console.log('Sending teleport request:', command);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
+      
+      // Use 127.0.0.1 to avoid localhost resolution issues (IPv4 vs IPv6)
+      const res = await fetch('http://127.0.0.1:3001/teleport', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!res.ok) {
+        throw new Error(`Server responded with status: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      console.log('Teleport success:', data);
+      
+    } catch (err) {
+      console.error('Auto-teleport failed:', err);
+      // Fallback to copy if server not running
+      const isNetworkError = (err as Error).name === 'TypeError' || (err as Error).name === 'AbortError';
+      const errorMsg = isNetworkError 
+        ? 'Teleport Helper not detected at http://127.0.0.1:3001.\n\nPlease ensure "node scripts/teleport-server.js" is running.' 
+        : `Teleport Failed: ${(err as Error).message}`;
+
+      navigator.clipboard.writeText(command).then(() => {
+        alert(`${errorMsg}\n\nCommand has been copied to clipboard instead.`);
+      }).catch(() => {
+        alert(errorMsg);
+      });
+    }
+  }
+
+  return (
+    <div className="p-4 bg-[var(--color-satisfactory-panel)] rounded-lg border border-[var(--color-satisfactory-border)] flex flex-col justify-between group relative">
+      <div>
+        <div className="text-xs text-[var(--color-satisfactory-text-dim)]">Location (Game)</div>
+        <div className="text-lg font-semibold mt-1 truncate font-mono text-sm tracking-tight">
+          {formatLocation(location)}
+        </div>
+        <div className="text-xs text-[var(--color-satisfactory-text-dim)] mt-1 opacity-100 transition-opacity">
+          Map: {Math.round(location.x / 100)}, {Math.round(location.y / 100)} (m)
+        </div>
+      </div>
+      
+      <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={handleAutoTeleport}
+          className="p-1.5 text-[var(--color-satisfactory-text-dim)] hover:text-[var(--color-satisfactory-orange)] hover:bg-[var(--color-satisfactory-dark)] rounded transition-colors"
+          title="Auto-Teleport (Requires Helper Script)"
+        >
+          <Zap className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleCopyChat}
+          className="p-1.5 text-[var(--color-satisfactory-text-dim)] hover:text-[var(--color-satisfactory-text)] hover:bg-[var(--color-satisfactory-dark)] rounded transition-colors"
+          title="Copy for Chat (!tp)"
+        >
+          {copiedChat ? <Check className="w-4 h-4 text-green-500" /> : <MessageSquare className="w-4 h-4" />}
+        </button>
+        <button
+          onClick={handleCopyConsole}
+          className="p-1.5 text-[var(--color-satisfactory-text-dim)] hover:text-[var(--color-satisfactory-text)] hover:bg-[var(--color-satisfactory-dark)] rounded transition-colors"
+          title="Copy for Console (TeleportPlayer)"
+        >
+          {copiedConsole ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+

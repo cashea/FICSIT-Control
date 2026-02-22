@@ -9,6 +9,7 @@ import type {
   FRMBelt,
   FRMCable,
   FRMSwitch,
+  FRMRecipe,
 } from "../types";
 import {
   PowerCircuitArraySchema,
@@ -20,6 +21,7 @@ import {
   BeltArraySchema,
   CableArraySchema,
   SwitchArraySchema,
+  RecipeArraySchema,
 } from "./frm-schemas";
 
 export type FRMEndpoint =
@@ -292,5 +294,9 @@ export class FRMClient {
 
   async getBelts(): Promise<FRMBelt[]> {
     return this.fetchEndpoint("getBelts", BeltArraySchema);
+  }
+
+  async getRecipes(): Promise<FRMRecipe[]> {
+    return this.fetchEndpoint("getRecipes", RecipeArraySchema);
   }
 }

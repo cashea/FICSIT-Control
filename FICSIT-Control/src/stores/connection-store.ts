@@ -93,6 +93,9 @@ export const useConnectionStore = create<ConnectionState>()(
               case "getSwitches":
                 factory.setSwitches(data as never[]);
                 break;
+              case "getRecipes":
+                factory.setUnlockedRecipes(data as never[]);
+                break;
             }
           });
 
@@ -139,6 +142,12 @@ export const useConnectionStore = create<ConnectionState>()(
           // Initial fetch + start polling every 3s
           await pollData();
           pollTimer = setInterval(pollData, 3000);
+
+          // Fetch unlocked recipes once (static data, no need to poll)
+          client.getRecipes().then(
+            (recipes) => useFactoryStore.getState().setUnlockedRecipes(recipes),
+            () => console.warn("[FRM] getRecipes not available"),
+          );
         } catch (err) {
           const message = err instanceof Error ? err.message : "Connection failed";
           set({ status: "error", error: message, client: null });

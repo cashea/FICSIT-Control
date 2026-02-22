@@ -1,18 +1,14 @@
 import { describe, it, expect } from "vitest";
 import type { FRMStorageContainer } from "../../../types";
 
-// Import the getFullness function - we'll need to export it first
-// For now, we'll copy the logic to test it
-
+// Mirror the getFullness logic from StorageAssetList.tsx
 function getFullness(container: FRMStorageContainer): number {
   const slotsWithItems = container.Inventory.filter((i) => i.MaxAmount > 0);
   if (slotsWithItems.length === 0) return 0;
-  
-  const totalFullness = slotsWithItems.reduce(
-    (sum, item) => sum + (item.Amount / item.MaxAmount),
-    0
-  );
-  return (totalFullness / slotsWithItems.length) * 100;
+
+  const totalAmount = slotsWithItems.reduce((sum, item) => sum + item.Amount, 0);
+  const totalCapacity = slotsWithItems.reduce((sum, item) => sum + item.MaxAmount, 0);
+  return Math.min((totalAmount / totalCapacity) * 100, 100);
 }
 
 describe("StorageAssetList - getFullness", () => {
@@ -64,17 +60,14 @@ describe("StorageAssetList - getFullness", () => {
       ClassName: "Build_StorageContainerMk1_C",
       location: { x: 0, y: 0, z: 0 },
       Inventory: [
-        // First slot: 100/100 = 100%
         { Name: "Iron Ore", ClassName: "Desc_IronOre_C", Amount: 100, MaxAmount: 100 },
-        // Second slot: 50/500 = 10%
         { Name: "Wire", ClassName: "Desc_Wire_C", Amount: 50, MaxAmount: 500 },
-        // Third slot: 200/200 = 100%
         { Name: "Copper Ore", ClassName: "Desc_CopperOre_C", Amount: 200, MaxAmount: 200 },
       ],
     };
 
-    // Average: (100 + 10 + 100) / 3 = 70%
-    expect(getFullness(container)).toBe(70);
+    // Total: (100 + 50 + 200) / (100 + 500 + 200) = 350/800 = 43.75%
+    expect(getFullness(container)).toBeCloseTo(43.75);
   });
 
   it("should ignore empty slots with MaxAmount 0", () => {
@@ -107,6 +100,20 @@ describe("StorageAssetList - getFullness", () => {
     expect(getFullness(container)).toBe(0);
   });
 
+  it("should cap at 100% when Amount exceeds MaxAmount", () => {
+    const container: FRMStorageContainer = {
+      Name: "Storage Container",
+      ClassName: "Build_StorageContainerMk1_C",
+      location: { x: 0, y: 0, z: 0 },
+      Inventory: [
+        // FRM reports total amount across stacks, MaxAmount is per-stack size
+        { Name: "Iron Ore", ClassName: "Desc_IronOre_C", Amount: 500, MaxAmount: 100 },
+      ],
+    };
+
+    expect(getFullness(container)).toBe(100);
+  });
+
   it("should never exceed 100%", () => {
     const container: FRMStorageContainer = {
       Name: "Storage Container",
@@ -130,16 +137,13 @@ describe("StorageAssetList - getFullness", () => {
       ClassName: "Build_StorageContainerMk1_C",
       location: { x: 0, y: 0, z: 0 },
       Inventory: [
-        // Slot 1: 100% full
         { Name: "Iron Ore", ClassName: "Desc_IronOre_C", Amount: 100, MaxAmount: 100 },
-        // Slot 2: 0% full
         { Name: "Copper Ore", ClassName: "Desc_CopperOre_C", Amount: 0, MaxAmount: 200 },
-        // Slot 3: 50% full
         { Name: "Wire", ClassName: "Desc_Wire_C", Amount: 250, MaxAmount: 500 },
       ],
     };
 
-    // Average: (100 + 0 + 50) / 3 = 50%
-    expect(getFullness(container)).toBe(50);
+    // Total: (100 + 0 + 250) / (100 + 200 + 500) = 350/800 = 43.75%
+    expect(getFullness(container)).toBeCloseTo(43.75);
   });
 });

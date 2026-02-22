@@ -1,5 +1,6 @@
 import { Wifi, WifiOff, Activity } from "lucide-react";
 import { useConnectionStore } from "../../stores/connection-store";
+import { FocusGameButton } from "../control/FocusGameButton";
 
 export function Header() {
   const { status, lastUpdate } = useConnectionStore();
@@ -20,6 +21,7 @@ export function Header() {
         <h1 className="text-lg font-semibold text-[var(--color-satisfactory-text)]">
           FICSIT Control
         </h1>
+        <FocusGameButton />
       </div>
 
       <div className={`flex items-center gap-2 text-sm ${statusColor}`}>

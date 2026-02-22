@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "mock:control": "tsx dev/mock-control-server.ts"
+    "mock:control": "tsx dev/mock-control-server.ts",
+    "bridge": "node scripts/teleport-server.js",
+    "focus:test": "node scripts/focus-satisfactory.mjs",
+    "focus:test:dry": "node scripts/focus-satisfactory.mjs --dry-run --json"
   },
   "dependencies": {
     "@dagrejs/dagre": "^2.0.4",
@@ -18,7 +21,10 @@
     "@nivo/line": "^0.99.0",
     "@nivo/sankey": "^0.99.0",
     "@xyflow/react": "^12.10.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "immer": "^11.1.4",
+    "koffi": "^2.15.1",
     "lucide-react": "^0.564.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

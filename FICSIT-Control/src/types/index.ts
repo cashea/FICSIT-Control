@@ -24,6 +24,8 @@ export type {
   FRMBelt,
   FRMCable,
   FRMSwitch,
+  FRMRecipe,
+  FRMRecipeItem,
 } from "./frm";
 export type {
   ControlFeatureMap,

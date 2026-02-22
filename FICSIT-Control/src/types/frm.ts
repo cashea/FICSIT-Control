@@ -134,6 +134,19 @@ export interface FRMSwitch {
   location: { x: number; y: number; z: number; rotation: number };
 }
 
+export interface FRMRecipeItem {
+  Name: string;
+  ClassName: string;
+  Amount: number;
+}
+
+export interface FRMRecipe {
+  Name: string;
+  ClassName: string;
+  Ingredients: FRMRecipeItem[];
+  Products: FRMRecipeItem[];
+}
+
 export interface FRMGenerator {
   ID: string;
   Name: string;

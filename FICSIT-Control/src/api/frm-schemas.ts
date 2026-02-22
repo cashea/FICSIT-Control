@@ -168,3 +168,18 @@ export const PlayerArraySchema = z.array(FRMPlayerSchema);
 export const GeneratorArraySchema = z.array(FRMGeneratorSchema);
 export const CableArraySchema = z.array(FRMCableSchema);
 export const SwitchArraySchema = z.array(FRMSwitchSchema);
+
+export const FRMRecipeItemSchema = z.object({
+  Name: z.string(),
+  ClassName: z.string(),
+  Amount: z.number(),
+});
+
+export const FRMRecipeSchema = z.object({
+  Name: z.string(),
+  ClassName: z.string(),
+  Ingredients: z.array(FRMRecipeItemSchema).default([]),
+  Products: z.array(FRMRecipeItemSchema).default([]),
+}).passthrough();
+
+export const RecipeArraySchema = z.array(FRMRecipeSchema);

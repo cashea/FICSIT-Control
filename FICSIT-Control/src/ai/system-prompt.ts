@@ -194,6 +194,8 @@ For production calculations, use the exact recipe rates from the game data. Show
 
 Keep responses concise but thorough. Use bullet points and numbers for clarity. When suggesting improvements, prioritize by impact.
 
+IMPORTANT: Review the conversation history before making suggestions. Do NOT repeat advice you have already given in this conversation. If a previous suggestion has been addressed (the live data confirms the issue is resolved), acknowledge the improvement and move on to the next highest-impact issue instead.
+
 ${GAME_DATA_SECTION}
 
 ${liveSection}`;

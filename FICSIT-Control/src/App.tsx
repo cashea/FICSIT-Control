@@ -12,15 +12,8 @@ const PowerGridView = lazy(() => import("./components/power/PowerGridView"));
 const OneLineDiagramView = lazy(() => import("./components/sld/OneLineDiagramView"));
 const PlannerView = lazy(() => import("./components/planner/PlannerView"));
 const TaktPlannerView = lazy(() => import("./components/takt/TaktPlannerView"));
+const RecipeTreeView = lazy(() => import("./components/recipe-tree/RecipeTreeView"));
 const AIChat = lazy(() => import("./components/ai/AIChat"));
-
-function RecipesView() {
-  return (
-    <div className="p-6 text-center text-[var(--color-satisfactory-text-dim)]">
-      Recipe Browser — coming in Phase 5
-    </div>
-  );
-}
 
 function App() {
   const { activeTab } = useUIStore();
@@ -54,7 +47,7 @@ function App() {
                 {activeTab === "oneline" && <OneLineDiagramView />}
                 {activeTab === "planner" && <PlannerView />}
                 {activeTab === "takt" && <TaktPlannerView />}
-                {activeTab === "recipes" && <RecipesView />}
+                {activeTab === "recipes" && <RecipeTreeView />}
               </div>
             )}
           </Suspense>

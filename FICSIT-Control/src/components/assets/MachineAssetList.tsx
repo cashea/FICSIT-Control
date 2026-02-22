@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Factory, ArrowUpDown, Power } from "lucide-r
 import { useFactoryStore } from "../../stores/factory-store";
 import { useControlStore } from "../../stores/control-store";
 import { ControlActionButton } from "../control/ControlActionButton";
+import { LocationBadge } from "./LocationBadge";
 import { machineKey, type MachineKey } from "../../utils/machine-id";
 import type { FRMMachine } from "../../types";
 
@@ -134,6 +135,7 @@ function MachineTypeGroup({
               Status
               {sortKey === "status" && <ArrowUpDown className="w-3 h-3" />}
             </button>
+            <span className="w-36 text-right">Location</span>
             {hasControl && <span className="w-16 text-right">Control</span>}
           </div>
 
@@ -175,6 +177,9 @@ function MachineTypeGroup({
                   }`}
                 >
                   {machine.IsProducing ? "Running" : machine.IsPaused ? "Paused" : "Idle"}
+                </span>
+                <span className="w-36 text-right">
+                  <LocationBadge location={machine.location} />
                 </span>
                 {hasControl && (
                   <span className="w-16 flex justify-end">

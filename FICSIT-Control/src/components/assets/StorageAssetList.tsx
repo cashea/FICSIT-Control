@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Package, ArrowUpDown } from "lucide-react";
+import { Package, ArrowUpDown, ChevronDown, ChevronRight } from "lucide-react";
 import { useFactoryStore } from "../../stores/factory-store";
 import { ITEMS } from "../../data/items";
 import { CATEGORY_COLORS } from "../recipe-tree/recipe-tree-theme";
+import { LocationBadge } from "./LocationBadge";
 import type { FRMStorageContainer, FRMInventoryItem } from "../../types";
 
 type SortKey = "name" | "fullness" | "items";
@@ -53,6 +54,93 @@ function itemColor(item: FRMInventoryItem): string | undefined {
   return gameItem ? CATEGORY_COLORS[gameItem.category] : undefined;
 }
 
+interface RollupItem {
+  name: string;
+  className: string;
+  totalAmount: number;
+  containerCount: number;
+}
+
+function buildRollup(containers: FRMStorageContainer[]): RollupItem[] {
+  const totals = new Map<string, RollupItem>();
+  for (const c of containers) {
+    for (const item of c.Inventory) {
+      if (item.Amount === 0) continue;
+      const existing = totals.get(item.ClassName);
+      if (existing) {
+        existing.totalAmount += item.Amount;
+        existing.containerCount++;
+      } else {
+        totals.set(item.ClassName, {
+          name: item.Name,
+          className: item.ClassName,
+          totalAmount: item.Amount,
+          containerCount: 1,
+        });
+      }
+    }
+  }
+  return Array.from(totals.values()).sort((a, b) => b.totalAmount - a.totalAmount);
+}
+
+function StorageRollup({ containers }: { containers: FRMStorageContainer[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const items = buildRollup(containers);
+  if (items.length === 0) return null;
+
+  const totalItems = items.reduce((s, i) => s + i.totalAmount, 0);
+  const avgFullness =
+    containers.reduce((s, c) => s + getFullness(c), 0) / containers.length;
+
+  const preview = items.slice(0, 6);
+  const rest = items.slice(6);
+
+  return (
+    <div className="p-3 bg-[var(--color-satisfactory-panel)] rounded-lg border border-[var(--color-satisfactory-border)]">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-4 text-xs text-[var(--color-satisfactory-text-dim)]">
+          <span>
+            <span className="text-[var(--color-satisfactory-text)] font-medium">{totalItems.toLocaleString()}</span> items across{" "}
+            <span className="text-[var(--color-satisfactory-text)] font-medium">{containers.length}</span> containers
+          </span>
+          <span>
+            Avg fullness:{" "}
+            <span className={`font-medium ${fullnessColor(avgFullness)}`}>
+              {avgFullness.toFixed(0)}%
+            </span>
+          </span>
+        </div>
+        {rest.length > 0 && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-1 text-xs text-[var(--color-satisfactory-text-dim)] hover:text-[var(--color-satisfactory-text)] transition-colors"
+          >
+            {expanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            {expanded ? "Less" : `+${rest.length} more`}
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+        {(expanded ? items : preview).map((item) => {
+          const itemId = item.className.replace(/^Desc_/, "").replace(/_C$/, "");
+          const gameItem = ITEMS[itemId];
+          const color = gameItem ? CATEGORY_COLORS[gameItem.category] : undefined;
+          return (
+            <span key={item.className} className="flex items-center gap-1">
+              <span style={{ color: color ?? "var(--color-satisfactory-text-dim)" }}>
+                {item.name}
+              </span>
+              <span className="text-[var(--color-satisfactory-text-dim)]">
+                {item.totalAmount.toLocaleString()}
+              </span>
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function StorageAssetList({ search }: { search: string }) {
   const { inventory } = useFactoryStore();
   const [sortKey, setSortKey] = useState<SortKey>("fullness");
@@ -90,6 +178,8 @@ export function StorageAssetList({ search }: { search: string }) {
           ({filtered.length})
         </span>
       </h2>
+
+      <StorageRollup containers={filtered} />
 
       {filtered.length === 0 ? (
         <div className="p-4 text-center text-sm text-[var(--color-satisfactory-text-dim)]">
@@ -166,8 +256,8 @@ export function StorageAssetList({ search }: { search: string }) {
                     {fullness.toFixed(0)}%
                   </span>
                 </div>
-                <span className="w-36 text-right text-[var(--color-satisfactory-text-dim)]">
-                  {container.location.x.toFixed(0)}, {container.location.y.toFixed(0)}, {container.location.z.toFixed(0)}
+                <span className="w-36 text-right text-xs">
+                  <LocationBadge location={container.location} />
                 </span>
               </div>
             );

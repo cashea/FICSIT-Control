@@ -352,6 +352,38 @@ try {
 });
 
 // ---------------------------------------------------------------------------
+// POST /clipboard — set system clipboard text (used for return-location after
+// smart teleport; called separately so the game has time to read the paste)
+// ---------------------------------------------------------------------------
+app.post('/clipboard', (req, res) => {
+  const { text } = req.body;
+  if (!text) {
+    return res.status(400).json({ error: 'text is required' });
+  }
+
+  if (setClipboardText) {
+    const ok = setClipboardText(text);
+    console.log(`[Clipboard] Set via FFI: ok=${ok} text=${text}`);
+    return res.json({ success: ok, method: 'ffi' });
+  }
+
+  // PowerShell fallback
+  const safeText = text.replace(/'/g, "''");
+  exec(
+    `powershell -NoProfile -ExecutionPolicy Bypass -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Clipboard]::SetText('${safeText}')"`,
+    { timeout: 3000 },
+    (error) => {
+      if (error) {
+        console.error(`[Clipboard PS Error] ${error.message}`);
+        return res.status(500).json({ error: 'Failed to set clipboard' });
+      }
+      console.log(`[Clipboard] Set via PowerShell: text=${text}`);
+      res.json({ success: true, method: 'powershell' });
+    }
+  );
+});
+
+// ---------------------------------------------------------------------------
 // Start
 // ---------------------------------------------------------------------------
 app.listen(PORT, HOST, () => {

@@ -1,9 +1,10 @@
-import { Package } from "lucide-react";
-import { useState } from "react";
+import { Package, Locate } from "lucide-react";
+import { useState, useCallback } from "react";
 import { useFactoryStore } from "../../stores/factory-store";
 import { useConnectionStore } from "../../stores/connection-store";
 import { ITEMS } from "../../data/items";
 import { CATEGORY_COLORS, CATEGORY_LABELS } from "../recipe-tree/recipe-tree-theme";
+import { smartTeleport } from "../../utils/smart-teleport";
 import type { ItemCategory } from "../../types";
 
 interface AggregatedItem {
@@ -23,6 +24,19 @@ export function InventoryPanel() {
   const { inventory } = useFactoryStore();
   const { status } = useConnectionStore();
   const [search, setSearch] = useState("");
+  const [teleportingItem, setTeleportingItem] = useState<string | null>(null);
+
+  const handleSmartTeleport = useCallback(
+    async (className: string) => {
+      setTeleportingItem(className);
+      try {
+        await smartTeleport(className, inventory);
+      } finally {
+        setTimeout(() => setTeleportingItem(null), 1500);
+      }
+    },
+    [inventory],
+  );
 
   if (status !== "connected") {
     return (
@@ -89,19 +103,31 @@ export function InventoryPanel() {
             const color = item.category
               ? CATEGORY_COLORS[item.category]
               : "var(--color-satisfactory-text-dim)";
+            const isTeleporting = teleportingItem === item.className;
             return (
               <div
                 key={item.className}
-                className="flex items-center justify-between p-3 bg-[var(--color-satisfactory-panel)] rounded border border-[var(--color-satisfactory-border)]"
+                onDoubleClick={() => handleSmartTeleport(item.className)}
+                className="flex items-center justify-between p-3 bg-[var(--color-satisfactory-panel)] rounded border border-[var(--color-satisfactory-border)] cursor-pointer select-none"
                 style={{ borderLeftWidth: 3, borderLeftColor: color }}
+                title="Double-click to teleport to largest container"
               >
                 <div className="flex items-center gap-2">
                   <div>
-                    <span className="text-sm font-medium">{item.name}</span>
-                    <span className="ml-2 text-xs text-[var(--color-satisfactory-text-dim)]">
-                      in {item.containerCount} container
-                      {item.containerCount > 1 ? "s" : ""}
+                    <span className="text-sm font-medium inline-flex items-center gap-1.5">
+                      {isTeleporting && <Locate className="w-3.5 h-3.5 text-[var(--color-satisfactory-orange)] animate-pulse" />}
+                      {item.name}
                     </span>
+                    {isTeleporting ? (
+                      <span className="ml-2 text-[10px] text-[var(--color-satisfactory-orange)]">
+                        Copied — paste in chat to teleport
+                      </span>
+                    ) : (
+                      <span className="ml-2 text-xs text-[var(--color-satisfactory-text-dim)]">
+                        in {item.containerCount} container
+                        {item.containerCount > 1 ? "s" : ""}
+                      </span>
+                    )}
                   </div>
                   {item.category && (
                     <span

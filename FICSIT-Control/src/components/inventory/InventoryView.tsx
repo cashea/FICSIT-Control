@@ -1,9 +1,10 @@
-import { Package, ArrowUpDown } from "lucide-react";
-import { useState, useMemo } from "react";
+import { Package, ArrowUpDown, Locate } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
 import { useFactoryStore } from "../../stores/factory-store";
-import { useConnectionStore } from "../../stores/connection-store";
+import { useConnectionStore } from "../../stores/connection-store"; // status check
 import { ITEMS } from "../../data/items";
 import { CATEGORY_COLORS, CATEGORY_LABELS } from "../recipe-tree/recipe-tree-theme";
+import { smartTeleport } from "../../utils/smart-teleport";
 import type { ItemCategory } from "../../types";
 
 interface AggregatedItem {
@@ -28,6 +29,19 @@ function InventoryView() {
   const [categoryFilter, setCategoryFilter] = useState<ItemCategory | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("quantity");
   const [sortAsc, setSortAsc] = useState(false);
+  const [teleportingItem, setTeleportingItem] = useState<string | null>(null);
+
+  const handleSmartTeleport = useCallback(
+    async (className: string) => {
+      setTeleportingItem(className);
+      try {
+        await smartTeleport(className, inventory);
+      } finally {
+        setTimeout(() => setTeleportingItem(null), 1500);
+      }
+    },
+    [inventory],
+  );
 
   const aggregated = useMemo(() => {
     const map = new Map<string, AggregatedItem>();
@@ -188,13 +202,24 @@ function InventoryView() {
                 const color = item.category
                   ? CATEGORY_COLORS[item.category]
                   : "var(--color-satisfactory-text-dim)";
+                const isTeleporting = teleportingItem === item.className;
                 return (
                   <tr
                     key={item.className}
-                    className="border-b border-[var(--color-satisfactory-border)] hover:bg-[var(--color-satisfactory-panel)]"
+                    onDoubleClick={() => handleSmartTeleport(item.className)}
+                    className="border-b border-[var(--color-satisfactory-border)] hover:bg-[var(--color-satisfactory-panel)] cursor-pointer select-none"
+                    title="Double-click to teleport to largest container"
                   >
                     <td className="py-2 pr-4" style={{ borderLeft: `3px solid ${color}`, paddingLeft: "0.75rem" }}>
-                      <span className="font-medium">{item.name}</span>
+                      <span className="font-medium inline-flex items-center gap-1.5">
+                        {isTeleporting && <Locate className="w-3.5 h-3.5 text-[var(--color-satisfactory-orange)] animate-pulse" />}
+                        {item.name}
+                      </span>
+                      {isTeleporting && (
+                        <span className="ml-2 text-[10px] text-[var(--color-satisfactory-orange)]">
+                          Copied — paste in chat to teleport
+                        </span>
+                      )}
                     </td>
                     <td className="py-2 pr-4">
                       {item.category && (

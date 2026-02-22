@@ -13,11 +13,21 @@ const HOST = '0.0.0.0';
 // Koffi FFI — loaded dynamically so the server still starts if koffi missing
 // ---------------------------------------------------------------------------
 let focusSatisfactoryWindow = null;
+let sendScanKeyPress = null;
+let sendCtrlV = null;
+let setClipboardText = null;
+let sleepSync = null;
+let SC_ENTER = null;
 
 try {
   const mod = await import('./lib/win32-focus.js');
   focusSatisfactoryWindow = mod.focusSatisfactoryWindow;
-  console.log('[win32-focus] Koffi FFI loaded successfully');
+  sendScanKeyPress = mod.sendScanKeyPress;
+  sendCtrlV = mod.sendCtrlV;
+  setClipboardText = mod.setClipboardText;
+  sleepSync = mod.sleepSync;
+  SC_ENTER = mod.SC_ENTER;
+  console.log('[win32-focus] Koffi FFI loaded successfully (focus + keyboard + clipboard)');
 } catch (err) {
   console.warn('[win32-focus] Koffi not available — focus endpoint will use PowerShell fallback');
   console.warn(`  Error: ${err.message}`);
@@ -191,23 +201,45 @@ app.post('/teleport', (req, res) => {
 
   console.log(`[${new Date().toISOString()}] Received teleport command: ${command}`);
 
-  // Step 1: Focus the game window via FFI (fast, reliable)
-  if (focusSatisfactoryWindow) {
-    const focusResult = focusSatisfactoryWindow();
-    console.log(`[Teleport] FFI focus ok=${focusResult.ok}`);
-    if (!focusResult.ok) {
-      return res.status(500).json({
-        error: 'Could not focus Satisfactory window',
-        details: focusResult.errors.map(e => e.message).join('; '),
-      });
+  // ---- FFI path: focus + clipboard + keyboard all from the same process ----
+  if (focusSatisfactoryWindow && sendScanKeyPress && sendCtrlV && setClipboardText && sleepSync) {
+    try {
+      // 1. Set clipboard BEFORE focusing (so it's ready when we paste)
+      const clipOk = setClipboardText(command);
+      console.log(`[Teleport] Clipboard set: ${clipOk}`);
+
+      // 2. Focus game window
+      const focusResult = focusSatisfactoryWindow();
+      console.log(`[Teleport] FFI focus ok=${focusResult.ok}`);
+      if (!focusResult.ok) {
+        return res.status(500).json({
+          error: 'Could not focus Satisfactory window',
+          details: focusResult.errors.map(e => e.message).join('; '),
+        });
+      }
+
+      // 3. Wait for window to fully activate
+      sleepSync(300);
+
+      // 4. Open chat (Enter), paste (Ctrl+V), send (Enter)
+      sendScanKeyPress(SC_ENTER);
+      sleepSync(200);
+      sendCtrlV();
+      sleepSync(150);
+      sendScanKeyPress(SC_ENTER);
+
+      console.log(`[Teleport] FFI keyboard sequence sent`);
+      return res.json({ success: true, method: 'ffi', output: 'Command sent via FFI' });
+    } catch (err) {
+      console.error(`[Teleport FFI Error] ${err.message}`);
+      // Fall through to PowerShell fallback
     }
   }
 
-  // Step 2: Copy command to clipboard, focus game, open chat, paste, send
-  // Uses SendInput (hardware-level) instead of SendKeys (message-level) for game compatibility
+  // ---- PowerShell fallback (when koffi is not available) ----
+  console.log('[Teleport] Using PowerShell fallback');
   const safeCommand = command.replace(/'/g, "''");
 
-  // SendInput P/Invoke with SCANCODE flag — Unreal Engine reads scan codes, not virtual keys
   const sendInputBlock = `
 Add-Type @'
 using System;
@@ -241,7 +273,6 @@ public class SendInputHelper {
     public const uint KEYEVENTF_SCANCODE = 0x0008;
     public const uint KEYEVENTF_KEYUP = 0x0002;
 
-    // Hardware scan codes
     public const ushort SC_ENTER  = 0x1C;
     public const ushort SC_LCTRL  = 0x1D;
     public const ushort SC_V      = 0x2F;
@@ -287,18 +318,7 @@ Start-Sleep -Milliseconds 150
 Write-Output 'Command sent successfully'
 `;
 
-  // If we used FFI focus, we just need to send keys — no need to find/focus the window again
-  const psScript = focusSatisfactoryWindow
-    ? `
-try {
-    Start-Sleep -Milliseconds 250
-    ${sendInputBlock}
-} catch {
-    Write-Error $_.Exception.Message
-    exit 1
-}
-`
-    : `
+  const psScript = `
 ${PS_PREAMBLE}
 try {
     $proc = Get-Process | Where-Object { $_.MainWindowTitle -like '*Satisfactory*' } | Select-Object -First 1
@@ -326,7 +346,7 @@ try {
         });
       }
       console.log(`[Success] Output: ${stdout.trim()}`);
-      res.json({ success: true, output: stdout });
+      res.json({ success: true, method: 'powershell', output: stdout });
     }
   );
 });

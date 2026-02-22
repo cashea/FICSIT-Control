@@ -3,7 +3,9 @@
     "allow": [
       "Bash(gh repo create:*)",
       "Bash(git remote set-url:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "WebFetch(domain:satisfactory.fandom.com)",
+      "Bash(node --check:*)"
     ]
   }
 }

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Package, ArrowUpDown, ChevronDown, ChevronRight } from "lucide-react";
+import { Package, ArrowUpDown, ChevronDown, ChevronRight, MapPin } from "lucide-react";
 import { useFactoryStore } from "../../stores/factory-store";
 import { ITEMS } from "../../data/items";
 import { CATEGORY_COLORS } from "../recipe-tree/recipe-tree-theme";
 import { LocationBadge } from "./LocationBadge";
+import { getPakUtilityCommand } from "../../utils/format";
 import type { FRMStorageContainer, FRMInventoryItem } from "../../types";
 
 type SortKey = "name" | "fullness" | "items";
@@ -222,10 +223,26 @@ export function StorageAssetList({ search }: { search: string }) {
             return (
               <div
                 key={i}
-                className="flex items-center gap-4 px-4 py-2 text-xs border-b border-[var(--color-satisfactory-border)] last:border-b-0"
+                onClick={async () => {
+                  const command = getPakUtilityCommand(container.location);
+                  await navigator.clipboard.writeText(command).catch(() => {});
+                  try {
+                    const ctrl = new AbortController();
+                    const t = setTimeout(() => ctrl.abort(), 2000);
+                    await fetch("http://127.0.0.1:3001/teleport", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ command }),
+                      signal: ctrl.signal,
+                    });
+                    clearTimeout(t);
+                  } catch { /* server not running — command on clipboard */ }
+                }}
+                className="flex items-center gap-4 px-4 py-2 text-xs border-b border-[var(--color-satisfactory-border)] last:border-b-0 cursor-pointer hover:bg-[var(--color-satisfactory-dark)] transition-colors"
               >
                 <div className="flex-1 min-w-0">
-                  <span className="text-[var(--color-satisfactory-text)] truncate block">
+                  <span className="text-[var(--color-satisfactory-text)] truncate block flex items-center gap-1.5">
+                    <MapPin className="w-3 h-3 text-[var(--color-satisfactory-text-dim)] shrink-0" />
                     {container.Name}
                   </span>
                   {stocked.length > 0 && (

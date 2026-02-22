@@ -62,6 +62,17 @@ const GetCurrentThreadId = kernel32.func('uint32 __stdcall GetCurrentThreadId()'
 // Keyboard simulation
 const keybd_event = user32.func('void __stdcall keybd_event(uint8 bVk, uint8 bScan, uint32 dwFlags, uint64 dwExtraInfo)');
 
+// Clipboard
+const OpenClipboard = user32.func('bool __stdcall OpenClipboard(void *hWndNewOwner)');
+const CloseClipboard = user32.func('bool __stdcall CloseClipboard()');
+const EmptyClipboard = user32.func('bool __stdcall EmptyClipboard()');
+const SetClipboardData = user32.func('void * __stdcall SetClipboardData(uint32 uFormat, void *hMem)');
+const GlobalAlloc = kernel32.func('void * __stdcall GlobalAlloc(uint32 uFlags, uint64 dwBytes)');
+const GlobalLock = kernel32.func('void * __stdcall GlobalLock(void *hMem)');
+const GlobalUnlock = kernel32.func('bool __stdcall GlobalUnlock(void *hMem)');
+const GlobalFree = kernel32.func('void * __stdcall GlobalFree(void *hMem)');
+const RtlMoveMemory = kernel32.func('void __stdcall RtlMoveMemory(void *dest, _In_ void *src, uint64 length)');
+
 // Process info
 const OpenProcess = kernel32.func('void * __stdcall OpenProcess(uint32 dwDesiredAccess, bool bInheritHandle, uint32 dwProcessId)');
 const CloseHandle = kernel32.func('bool __stdcall CloseHandle(void *hObject)');
@@ -78,8 +89,18 @@ const WS_EX_NOACTIVATE = 0x08000000;
 const SW_RESTORE = 9;
 const VK_MENU = 0x12; // Alt key
 const KEYEVENTF_KEYUP = 0x0002;
+const KEYEVENTF_SCANCODE = 0x0008;
 const PROCESS_QUERY_INFORMATION = 0x0400;
 const PROCESS_VM_READ = 0x0010;
+
+// Clipboard constants
+const CF_UNICODETEXT = 13;
+const GMEM_MOVEABLE = 0x0002;
+
+// Hardware scan codes (for Unreal Engine compatibility)
+const SC_ENTER = 0x1C;
+const SC_LCTRL = 0x1D;
+const SC_V = 0x2F;
 
 const CANDIDATE_PROCESS_NAMES = [
   'factorygamesteam-win64-shipping.exe',
@@ -353,6 +374,75 @@ function attemptFocus(hwnd, targetThreadId) {
 
   return { steps, errors };
 }
+
+// ---------------------------------------------------------------------------
+// Keyboard input helpers (scan codes for Unreal Engine)
+// ---------------------------------------------------------------------------
+
+/**
+ * Press and release a single key by hardware scan code.
+ * Uses keybd_event with KEYEVENTF_SCANCODE so Unreal Engine receives it.
+ */
+export function sendScanKeyPress(scanCode) {
+  keybd_event(0, scanCode, KEYEVENTF_SCANCODE, 0);
+  keybd_event(0, scanCode, KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+}
+
+/** Send Ctrl+V (paste) using hardware scan codes. */
+export function sendCtrlV() {
+  keybd_event(0, SC_LCTRL, KEYEVENTF_SCANCODE, 0);
+  keybd_event(0, SC_V, KEYEVENTF_SCANCODE, 0);
+  keybd_event(0, SC_V, KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+  keybd_event(0, SC_LCTRL, KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+}
+
+/** Exported scan code constants. */
+export { SC_ENTER, SC_LCTRL, SC_V };
+
+// ---------------------------------------------------------------------------
+// Clipboard helper (native Win32 — no PowerShell needed)
+// ---------------------------------------------------------------------------
+
+/**
+ * Set the Windows clipboard to a UTF-16 string using Win32 APIs.
+ * Returns true on success.
+ */
+export function setClipboardText(text) {
+  const utf16 = Buffer.from(text + '\0', 'utf16le');
+
+  if (!OpenClipboard(null)) return false;
+  try {
+    EmptyClipboard();
+
+    const hMem = GlobalAlloc(GMEM_MOVEABLE, utf16.byteLength);
+    if (!hMem) return false;
+
+    const pMem = GlobalLock(hMem);
+    if (!pMem) {
+      GlobalFree(hMem);
+      return false;
+    }
+
+    // Copy UTF-16 bytes into the global memory block
+    RtlMoveMemory(pMem, utf16, utf16.byteLength);
+
+    GlobalUnlock(hMem);
+
+    const result = SetClipboardData(CF_UNICODETEXT, hMem);
+    // If SetClipboardData succeeds, the system owns hMem — do NOT free it
+    if (!result) {
+      GlobalFree(hMem);
+      return false;
+    }
+
+    return true;
+  } finally {
+    CloseClipboard();
+  }
+}
+
+/** Exported sleepSync for use by teleport-server. */
+export { sleepSync };
 
 // ---------------------------------------------------------------------------
 // Main export

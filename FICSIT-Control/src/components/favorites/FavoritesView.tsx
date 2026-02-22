@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star, Plus, Trash2, Pencil, Check, X, MapPin } from "lucide-react";
 import { useFavoritesStore, type FavoriteLocation } from "../../stores/favorites-store";
 import { LocationBadge } from "../assets/LocationBadge";
+import { useConnectionStore } from "../../stores/connection-store";
 
 function AddLocationForm({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
@@ -10,6 +11,19 @@ function AddLocationForm({ onClose }: { onClose: () => void }) {
   const [z, setZ] = useState("");
   const [notes, setNotes] = useState("");
   const addFavorite = useFavoritesStore((s) => s.addFavorite);
+  const client = useConnectionStore((s) => s.client);
+
+  useEffect(() => {
+    if (!client) return;
+    client.getPlayer().then((players) => {
+      if (players.length > 0) {
+        const p = players[0].location;
+        setX(String(Math.round(p.x)));
+        setY(String(Math.round(p.y)));
+        setZ(String(Math.round(p.z)));
+      }
+    }).catch(() => { /* FRM unavailable, leave fields empty */ });
+  }, [client]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

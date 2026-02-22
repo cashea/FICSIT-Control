@@ -8,6 +8,7 @@ export const ControlFeatureMapSchema = z.object({
   toggleBuilding: z.boolean().default(false),
   setRecipe: z.boolean().default(false),
   setOverclock: z.boolean().default(false),
+  teleportPlayer: z.boolean().default(false),
 });
 
 export const CapabilitiesResponseSchema = z.object({
@@ -26,6 +27,7 @@ export const CommandTypeSchema = z.enum([
   "TOGGLE_BUILDING",
   "SET_RECIPE",
   "SET_OVERCLOCK",
+  "TELEPORT_PLAYER",
 ]);
 
 export const CommandStatusSchema = z.enum([
@@ -61,12 +63,19 @@ export const SetOverclockPayloadSchema = z.object({
   clockPercent: z.number().min(0).max(250),
 });
 
+export const TeleportPlayerPayloadSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+});
+
 export const PayloadSchemaByType = {
   RESET_FUSE: ResetFusePayloadSchema,
   TOGGLE_GENERATOR_GROUP: ToggleGeneratorGroupPayloadSchema,
   TOGGLE_BUILDING: ToggleBuildingPayloadSchema,
   SET_RECIPE: SetRecipePayloadSchema,
   SET_OVERCLOCK: SetOverclockPayloadSchema,
+  TELEPORT_PLAYER: TeleportPlayerPayloadSchema,
 } as const;
 
 // -- Command request / response --

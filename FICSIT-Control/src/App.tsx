@@ -13,6 +13,7 @@ const OneLineDiagramView = lazy(() => import("./components/sld/OneLineDiagramVie
 const PlannerView = lazy(() => import("./components/planner/PlannerView"));
 const TaktPlannerView = lazy(() => import("./components/takt/TaktPlannerView"));
 const RecipeTreeView = lazy(() => import("./components/recipe-tree/RecipeTreeView"));
+const LocationsView = lazy(() => import("./components/locations/LocationsView"));
 const AIChat = lazy(() => import("./components/ai/AIChat"));
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
                 {activeTab === "planner" && <PlannerView />}
                 {activeTab === "takt" && <TaktPlannerView />}
                 {activeTab === "recipes" && <RecipeTreeView />}
+                {activeTab === "locations" && <LocationsView />}
               </div>
             )}
           </Suspense>

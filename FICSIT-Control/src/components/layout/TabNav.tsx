@@ -1,4 +1,4 @@
-import { LayoutDashboard, Calculator, BookOpen, Activity, Bot, Warehouse, Zap, Network, Timer } from "lucide-react";
+import { LayoutDashboard, Calculator, BookOpen, Activity, Bot, Warehouse, Zap, Network, Timer, MapPin } from "lucide-react";
 import { useUIStore, type ActiveTab } from "../../stores/ui-store";
 
 const tabs: Array<{ id: ActiveTab; label: string; icon: typeof LayoutDashboard }> = [
@@ -10,6 +10,7 @@ const tabs: Array<{ id: ActiveTab; label: string; icon: typeof LayoutDashboard }
   { id: "planner", label: "Planner", icon: Calculator },
   { id: "takt", label: "Takt Time", icon: Timer },
   { id: "recipes", label: "Recipes", icon: BookOpen },
+  { id: "locations", label: "Locations", icon: MapPin },
   { id: "ai", label: "AI", icon: Bot },
 ];
 

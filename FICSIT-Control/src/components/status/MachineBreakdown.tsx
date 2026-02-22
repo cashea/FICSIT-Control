@@ -15,6 +15,7 @@ const MACHINE_LABELS: Record<string, string> = {
   getBlender: "Blenders",
   getPackager: "Packagers",
   getParticleAccelerator: "Particle Accelerators",
+  getExtractor: "Extractors",
 };
 
 function MachineTypeRow({

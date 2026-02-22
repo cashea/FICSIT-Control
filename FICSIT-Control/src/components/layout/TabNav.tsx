@@ -1,15 +1,17 @@
-import { LayoutDashboard, Calculator, BookOpen, Activity, Bot, Warehouse, Zap, Network, Timer } from "lucide-react";
+import { LayoutDashboard, Calculator, BookOpen, Activity, Bot, Warehouse, Package, Zap, Network, Timer, Star } from "lucide-react";
 import { useUIStore, type ActiveTab } from "../../stores/ui-store";
 
 const tabs: Array<{ id: ActiveTab; label: string; icon: typeof LayoutDashboard }> = [
   { id: "status", label: "Factory Status", icon: Activity },
   { id: "assets", label: "Assets", icon: Warehouse },
+  { id: "inventory", label: "Inventory", icon: Package },
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "power", label: "Power Grid", icon: Zap },
   { id: "oneline", label: "One-Line", icon: Network },
   { id: "planner", label: "Planner", icon: Calculator },
   { id: "takt", label: "Takt Time", icon: Timer },
   { id: "recipes", label: "Recipes", icon: BookOpen },
+  { id: "favorites", label: "Favorites", icon: Star },
   { id: "ai", label: "AI", icon: Bot },
 ];
 

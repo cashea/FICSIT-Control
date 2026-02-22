@@ -44,6 +44,7 @@ export type FRMEndpoint =
   | "getRecipes"
   | "getSessionInfo"
   | "getGenerators"
+  | "getExtractor"
   | "getCables"
   | "getSwitches";
 
@@ -271,7 +272,7 @@ export class FRMClient {
   }
 
   async getMachines(
-    type: "getAssembler" | "getSmelter" | "getConstructor" | "getRefinery" | "getManufacturer" | "getFoundry" | "getBlender" | "getPackager"
+    type: "getAssembler" | "getSmelter" | "getConstructor" | "getRefinery" | "getManufacturer" | "getFoundry" | "getBlender" | "getPackager" | "getExtractor"
   ): Promise<FRMMachine[]> {
     return this.fetchEndpoint(type, MachineArraySchema);
   }

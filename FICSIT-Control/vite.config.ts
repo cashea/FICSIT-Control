@@ -1,10 +1,30 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { spawn, type ChildProcess } from 'child_process'
+import { resolve } from 'path'
+
+/** Spawns scripts/teleport-server.js alongside the Vite dev server. */
+function bridgeServer(): Plugin {
+  let child: ChildProcess | null = null
+  return {
+    name: 'bridge-server',
+    apply: 'serve',
+    configureServer() {
+      const script = resolve(__dirname, 'scripts/teleport-server.js')
+      child = spawn('node', [script], { stdio: 'inherit' })
+      child.on('error', (err) => console.warn(`[bridge] failed to start: ${err.message}`))
+      child.on('exit', (code) => { if (code) console.warn(`[bridge] exited with code ${code}`) })
+    },
+    buildEnd() {
+      if (child && !child.killed) { child.kill(); child = null }
+    },
+  }
+}
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), bridgeServer()],
   define: {
     __ANTHROPIC_ENV_KEY__: JSON.stringify(!!process.env.ANTHROPIC_API_KEY),
   },

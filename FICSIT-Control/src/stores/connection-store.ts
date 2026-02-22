@@ -16,6 +16,7 @@ const MACHINE_ENDPOINTS = [
   "getFoundry",
   "getBlender",
   "getPackager",
+  "getExtractor",
 ] as const;
 
 interface ConnectionState {

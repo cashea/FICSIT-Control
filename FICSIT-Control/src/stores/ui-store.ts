@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type ActiveTab = "status" | "assets" | "dashboard" | "power" | "oneline" | "planner" | "takt" | "recipes" | "ai";
+export type ActiveTab = "status" | "assets" | "inventory" | "dashboard" | "power" | "oneline" | "planner" | "takt" | "recipes" | "favorites" | "ai";
 
 interface UIState {
   activeTab: ActiveTab;

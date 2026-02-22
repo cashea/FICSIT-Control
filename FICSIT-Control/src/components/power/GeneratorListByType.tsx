@@ -8,6 +8,7 @@ import {
   type GeneratorGroup,
 } from "../../utils/power";
 import { formatMW } from "../../utils/format";
+import { LocationBadge } from "../assets/LocationBadge";
 import { useGeneratorNamesStore } from "../../stores/generator-names-store";
 import { getGeneratorDisplayName } from "../../utils/generator-names";
 
@@ -62,6 +63,7 @@ function GeneratorGroupSection({ group }: { group: GeneratorGroup }) {
             <thead>
               <tr className="text-[var(--color-satisfactory-text-dim)]">
                 <th className="text-left px-4 py-2 font-medium">Name</th>
+                <th className="text-left px-4 py-2 font-medium">Location</th>
                 <th className="text-right px-4 py-2 font-medium">Output</th>
                 <th className="text-right px-4 py-2 font-medium">Max</th>
                 <th className="text-right px-4 py-2 font-medium">Clock</th>
@@ -165,6 +167,9 @@ function GeneratorRow({ gen }: { gen: FRMGenerator }) {
             </span>
           )}
         </div>
+      </td>
+      <td className="px-4 py-2">
+        <LocationBadge location={gen.location} entityType={gen.Name} entityName={displayName} />
       </td>
       <td className="px-4 py-2 text-right text-[var(--color-connected)]">
         {formatMW(gen.RegulatedDemandProd)}

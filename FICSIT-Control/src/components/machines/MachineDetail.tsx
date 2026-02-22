@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { ChevronLeft, Copy, Check, MessageSquare, Zap } from "lucide-react";
+import { ChevronLeft, Copy, Check, MessageSquare, Zap, Star } from "lucide-react";
 import { useFactoryStore } from "../../stores/factory-store";
 import { findMachineByKey, type MachineKey } from "../../utils/machine-id";
 import { formatLocation, getTeleportCommand, getPakUtilityCommand } from "../../utils/format";
+import { useFavoritesStore } from "../../stores/favorites-store";
 import { ProductionHistoryChart } from "./ProductionHistoryChart";
 import { MachineControls } from "./MachineControls";
 import type { FRMMachine } from "../../types";
@@ -69,7 +70,7 @@ export function MachineDetail({ machineKey: key, onBack }: MachineDetailProps) {
           />
           <MetricCard label="Recipe" value={machine.Recipe || "None"} />
           <MetricCard label="Circuit" value={`#${machine.CircuitGroupID}`} />
-          <LocationCard location={machine.location} />
+          <LocationCard location={machine.location} entityType={machine.Name} entityName={machine.Recipe || undefined} />
         </div>
 
         {/* Production I/O */}
@@ -183,9 +184,14 @@ function IOSection({ title, items, mode }: {
   );
 }
 
-function LocationCard({ location }: { location: { x: number; y: number; z: number } }) {
+function LocationCard({ location, entityType, entityName }: {
+  location: { x: number; y: number; z: number };
+  entityType?: string;
+  entityName?: string;
+}) {
   const [copiedConsole, setCopiedConsole] = useState(false);
   const [copiedChat, setCopiedChat] = useState(false);
+  const [savedFav, setSavedFav] = useState(false);
 
   function handleCopyConsole() {
     const cmd = getTeleportCommand(location);
@@ -209,12 +215,15 @@ function LocationCard({ location }: { location: { x: number; y: number; z: numbe
       z: location.z + zOffset
     });
 
+    // Always copy to clipboard first so it's ready for paste
+    await navigator.clipboard.writeText(command).catch(() => {});
+
     try {
       console.log('Sending teleport request:', command);
-      
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
-      
+
       // Use 127.0.0.1 to avoid localhost resolution issues (IPv4 vs IPv6)
       const res = await fetch('http://127.0.0.1:3001/teleport', {
         method: 'POST',
@@ -222,29 +231,25 @@ function LocationCard({ location }: { location: { x: number; y: number; z: numbe
         body: JSON.stringify({ command }),
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!res.ok) {
         throw new Error(`Server responded with status: ${res.status}`);
       }
-      
+
       const data = await res.json();
       console.log('Teleport success:', data);
-      
+
     } catch (err) {
       console.error('Auto-teleport failed:', err);
-      // Fallback to copy if server not running
+      // Command is already on clipboard
       const isNetworkError = (err as Error).name === 'TypeError' || (err as Error).name === 'AbortError';
-      const errorMsg = isNetworkError 
-        ? 'Teleport Helper not detected at http://127.0.0.1:3001.\n\nPlease ensure "node scripts/teleport-server.js" is running.' 
+      const errorMsg = isNetworkError
+        ? 'Teleport Helper not detected at http://127.0.0.1:3001.\n\nPlease ensure "node scripts/teleport-server.js" is running.'
         : `Teleport Failed: ${(err as Error).message}`;
 
-      navigator.clipboard.writeText(command).then(() => {
-        alert(`${errorMsg}\n\nCommand has been copied to clipboard instead.`);
-      }).catch(() => {
-        alert(errorMsg);
-      });
+      alert(`${errorMsg}\n\nCommand has been copied to clipboard instead.`);
     }
   }
 
@@ -261,6 +266,19 @@ function LocationCard({ location }: { location: { x: number; y: number; z: numbe
       </div>
       
       <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => {
+            const nameParts = [entityType, entityName].filter(Boolean);
+            const name = nameParts.length > 0 ? nameParts.join(" — ") : formatLocation(location);
+            useFavoritesStore.getState().addFavorite({ name, location, entityType, entityName });
+            setSavedFav(true);
+            setTimeout(() => setSavedFav(false), 1500);
+          }}
+          className="p-1.5 text-[var(--color-satisfactory-text-dim)] hover:text-[var(--color-satisfactory-orange)] hover:bg-[var(--color-satisfactory-dark)] rounded transition-colors"
+          title="Save to Favorites"
+        >
+          {savedFav ? <Check className="w-4 h-4 text-[var(--color-connected)]" /> : <Star className="w-4 h-4" />}
+        </button>
         <button
           onClick={handleAutoTeleport}
           className="p-1.5 text-[var(--color-satisfactory-text-dim)] hover:text-[var(--color-satisfactory-orange)] hover:bg-[var(--color-satisfactory-dark)] rounded transition-colors"

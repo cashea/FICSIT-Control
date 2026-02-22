@@ -17,6 +17,7 @@ const MACHINE_LABELS: Record<string, string> = {
   getBlender: "Blenders",
   getPackager: "Packagers",
   getParticleAccelerator: "Particle Accelerators",
+  getExtractor: "Extractors",
 };
 
 type SortKey = "recipe" | "power" | "status";
@@ -179,7 +180,7 @@ function MachineTypeGroup({
                   {machine.IsProducing ? "Running" : machine.IsPaused ? "Paused" : "Idle"}
                 </span>
                 <span className="w-36 text-right">
-                  <LocationBadge location={machine.location} />
+                  <LocationBadge location={machine.location} entityType={label} entityName={machine.Recipe || undefined} />
                 </span>
                 {hasControl && (
                   <span className="w-16 flex justify-end">

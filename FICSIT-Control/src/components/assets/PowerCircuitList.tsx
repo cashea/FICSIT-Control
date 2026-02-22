@@ -56,7 +56,7 @@ function GeneratorGroupRow({ group }: { group: GeneratorGroup }) {
       <div className="flex items-center justify-between text-xs">
         <span>{group.name}</span>
         <div className="flex items-center gap-3">
-          <LocationBadge location={g.location} />
+          <LocationBadge location={g.location} entityType={group.name} entityName={group.fuelResource || undefined} />
           {group.fuelResource && (
             <span className="text-[var(--color-satisfactory-text-dim)]">{group.fuelResource}</span>
           )}
@@ -95,7 +95,7 @@ function GeneratorGroupRow({ group }: { group: GeneratorGroup }) {
         <div className="ml-4 mt-1 space-y-0.5">
           {group.generators.map((g) => (
             <div key={g.ID} className="flex items-center justify-between text-xs text-[var(--color-satisfactory-text-dim)]">
-              <LocationBadge location={g.location} />
+              <LocationBadge location={g.location} entityType={group.name} />
               <span>{formatMW(g.RegulatedDemandProd)}</span>
             </div>
           ))}

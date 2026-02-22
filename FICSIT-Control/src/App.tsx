@@ -7,12 +7,14 @@ import { FactoryStatus } from "./components/status/FactoryStatus";
 import { useUIStore } from "./stores/ui-store";
 
 const AssetsView = lazy(() => import("./components/assets/AssetsView"));
+const InventoryView = lazy(() => import("./components/inventory/InventoryView"));
 const DashboardView = lazy(() => import("./components/dashboard/DashboardView"));
 const PowerGridView = lazy(() => import("./components/power/PowerGridView"));
 const OneLineDiagramView = lazy(() => import("./components/sld/OneLineDiagramView"));
 const PlannerView = lazy(() => import("./components/planner/PlannerView"));
 const TaktPlannerView = lazy(() => import("./components/takt/TaktPlannerView"));
 const RecipeTreeView = lazy(() => import("./components/recipe-tree/RecipeTreeView"));
+const FavoritesView = lazy(() => import("./components/favorites/FavoritesView"));
 const AIChat = lazy(() => import("./components/ai/AIChat"));
 
 function App() {
@@ -42,12 +44,14 @@ function App() {
               <div className="flex-1 flex flex-col min-h-0 min-w-0 p-6">
                 {activeTab === "status" && <FactoryStatus />}
                 {activeTab === "assets" && <AssetsView />}
+                {activeTab === "inventory" && <InventoryView />}
                 {activeTab === "dashboard" && <DashboardView />}
                 {activeTab === "power" && <PowerGridView />}
                 {activeTab === "oneline" && <OneLineDiagramView />}
                 {activeTab === "planner" && <PlannerView />}
                 {activeTab === "takt" && <TaktPlannerView />}
                 {activeTab === "recipes" && <RecipeTreeView />}
+                {activeTab === "favorites" && <FavoritesView />}
               </div>
             )}
           </Suspense>

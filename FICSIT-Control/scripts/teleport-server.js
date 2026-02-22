@@ -203,21 +203,96 @@ app.post('/teleport', (req, res) => {
     }
   }
 
-  // Step 2: Send keystrokes via PowerShell SendKeys (only the typing part)
+  // Step 2: Copy command to clipboard, focus game, open chat, paste, send
+  // Uses SendInput (hardware-level) instead of SendKeys (message-level) for game compatibility
   const safeCommand = command.replace(/'/g, "''");
+
+  // SendInput P/Invoke with SCANCODE flag — Unreal Engine reads scan codes, not virtual keys
+  const sendInputBlock = `
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+
+public class SendInputHelper {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct INPUT {
+        public uint type;
+        public INPUTUNION U;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct INPUTUNION {
+        [FieldOffset(0)] public KEYBDINPUT ki;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct KEYBDINPUT {
+        public ushort wVk;
+        public ushort wScan;
+        public uint dwFlags;
+        public uint time;
+        public IntPtr dwExtraInfo;
+    }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+
+    public const uint INPUT_KEYBOARD = 1;
+    public const uint KEYEVENTF_SCANCODE = 0x0008;
+    public const uint KEYEVENTF_KEYUP = 0x0002;
+
+    // Hardware scan codes
+    public const ushort SC_ENTER  = 0x1C;
+    public const ushort SC_LCTRL  = 0x1D;
+    public const ushort SC_V      = 0x2F;
+
+    public static void ScanKeyPress(ushort scanCode) {
+        INPUT[] inputs = new INPUT[2];
+        inputs[0].type = INPUT_KEYBOARD;
+        inputs[0].U.ki.wScan = scanCode;
+        inputs[0].U.ki.dwFlags = KEYEVENTF_SCANCODE;
+        inputs[1].type = INPUT_KEYBOARD;
+        inputs[1].U.ki.wScan = scanCode;
+        inputs[1].U.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+        SendInput(2, inputs, Marshal.SizeOf(typeof(INPUT)));
+    }
+
+    public static void ScanCtrlV() {
+        INPUT[] inputs = new INPUT[4];
+        inputs[0].type = INPUT_KEYBOARD;
+        inputs[0].U.ki.wScan = SC_LCTRL;
+        inputs[0].U.ki.dwFlags = KEYEVENTF_SCANCODE;
+        inputs[1].type = INPUT_KEYBOARD;
+        inputs[1].U.ki.wScan = SC_V;
+        inputs[1].U.ki.dwFlags = KEYEVENTF_SCANCODE;
+        inputs[2].type = INPUT_KEYBOARD;
+        inputs[2].U.ki.wScan = SC_V;
+        inputs[2].U.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+        inputs[3].type = INPUT_KEYBOARD;
+        inputs[3].U.ki.wScan = SC_LCTRL;
+        inputs[3].U.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+        SendInput(4, inputs, Marshal.SizeOf(typeof(INPUT)));
+    }
+}
+'@
+
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.Clipboard]::SetText('${safeCommand}')
+Start-Sleep -Milliseconds 150
+[SendInputHelper]::ScanKeyPress([SendInputHelper]::SC_ENTER)
+Start-Sleep -Milliseconds 200
+[SendInputHelper]::ScanCtrlV()
+Start-Sleep -Milliseconds 150
+[SendInputHelper]::ScanKeyPress([SendInputHelper]::SC_ENTER)
+Write-Output 'Command sent successfully'
+`;
 
   // If we used FFI focus, we just need to send keys — no need to find/focus the window again
   const psScript = focusSatisfactoryWindow
     ? `
 try {
-    Start-Sleep -Milliseconds 150
-    $wshell = New-Object -ComObject wscript.shell
-    $wshell.SendKeys('{ENTER}')
-    Start-Sleep -Milliseconds 50
-    $wshell.SendKeys('${safeCommand}')
-    Start-Sleep -Milliseconds 50
-    $wshell.SendKeys('{ENTER}')
-    Write-Output 'Command sent successfully'
+    Start-Sleep -Milliseconds 250
+    ${sendInputBlock}
 } catch {
     Write-Error $_.Exception.Message
     exit 1
@@ -229,15 +304,9 @@ try {
     $proc = Get-Process | Where-Object { $_.MainWindowTitle -like '*Satisfactory*' } | Select-Object -First 1
     if ($proc -and $proc.MainWindowHandle -ne [IntPtr]::Zero) {
         ForceForeground $proc.MainWindowHandle
-        Start-Sleep -Milliseconds 150
+        Start-Sleep -Milliseconds 250
     }
-    $wshell = New-Object -ComObject wscript.shell
-    $wshell.SendKeys('{ENTER}')
-    Start-Sleep -Milliseconds 50
-    $wshell.SendKeys('${safeCommand}')
-    Start-Sleep -Milliseconds 50
-    $wshell.SendKeys('{ENTER}')
-    Write-Output 'Command sent successfully'
+    ${sendInputBlock}
 } catch {
     Write-Error $_.Exception.Message
     exit 1

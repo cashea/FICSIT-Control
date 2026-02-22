@@ -257,7 +257,7 @@ export function StorageAssetList({ search }: { search: string }) {
                   </span>
                 </div>
                 <span className="w-36 text-right text-xs">
-                  <LocationBadge location={container.location} />
+                  <LocationBadge location={container.location} entityType="Storage Container" entityName={container.Name} />
                 </span>
               </div>
             );

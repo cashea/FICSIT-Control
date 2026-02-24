@@ -99,21 +99,26 @@ export function BottleneckList() {
   const { productionStats, machines } = useFactoryStore();
 
   const bottlenecks: Bottleneck[] = [];
+  const allMachines: FRMMachine[] = Object.values(machines).flat();
 
   // Production bottlenecks: items with low production efficiency
   for (const stat of productionStats) {
     if (stat.MaxProd > 0 && stat.ProdPercent < 50) {
+      // Find machines that produce this item
+      const producers = allMachines.filter((m) =>
+        m.Production.some((p) => p.Name === stat.Name),
+      );
       bottlenecks.push({
         name: stat.Name,
         type: "production",
         efficiency: stat.ProdPercent,
         detail: `${stat.CurrentProd.toFixed(1)} / ${stat.MaxProd.toFixed(1)} per min`,
+        machines: producers.length > 0 ? producers : undefined,
       });
     }
   }
 
   // Machine bottlenecks: idle or paused machines
-  const allMachines: FRMMachine[] = Object.values(machines).flat();
   const stoppedMachines = allMachines.filter(
     (m) => !m.IsProducing && !m.IsPaused
   );

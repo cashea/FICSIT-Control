@@ -58,7 +58,9 @@
       "Bash(node scripts/debug-pid.mjs:*)",
       "Bash(python:*)",
       "Bash(pkill:*)",
-      "Bash(npm run bridge:*)"
+      "Bash(npm run bridge:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(pgrep:*)"
     ]
   }
 }

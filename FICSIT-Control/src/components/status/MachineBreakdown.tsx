@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Factory } from "lucide-react";
 import { useFactoryStore } from "../../stores/factory-store";
 import { useUIStore } from "../../stores/ui-store";
 import { machineKey, type MachineKey } from "../../utils/machine-id";
+import { LocationBadge } from "../assets/LocationBadge";
 import type { FRMMachine } from "../../types";
 
 const MACHINE_LABELS: Record<string, string> = {
@@ -101,9 +102,17 @@ function MachineTypeRow({
                   {machine.Recipe || "No recipe"}
                 </span>
               </div>
-              <span className="text-[var(--color-satisfactory-text-dim)]">
-                {machine.PowerInfo?.PowerConsumed?.toFixed(1) ?? "?"} MW
-              </span>
+              <div className="flex items-center gap-3">
+                <LocationBadge
+                  location={machine.location}
+                  entityType={machine.Name}
+                  entityName={machine.Recipe}
+                  className="text-xs"
+                />
+                <span className="text-[var(--color-satisfactory-text-dim)]">
+                  {machine.PowerInfo?.PowerConsumed?.toFixed(1) ?? "?"} MW
+                </span>
+              </div>
             </div>
           ))}
         </div>

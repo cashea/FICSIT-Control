@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { formatMW } from "../../utils/format";
+import { LocationBadge } from "../assets/LocationBadge";
 import type { ConsumerGroup } from "../../utils/power";
 
 function ConsumerGroupSection({ group }: { group: ConsumerGroup }) {
@@ -37,6 +38,7 @@ function ConsumerGroupSection({ group }: { group: ConsumerGroup }) {
                 <th className="text-right px-4 py-2 font-medium">Power</th>
                 <th className="text-right px-4 py-2 font-medium">Max</th>
                 <th className="text-right px-4 py-2 font-medium">Status</th>
+                <th className="text-right px-4 py-2 font-medium">Location</th>
               </tr>
             </thead>
             <tbody>
@@ -62,6 +64,13 @@ function ConsumerGroupSection({ group }: { group: ConsumerGroup }) {
                     ) : (
                       <span className="text-[var(--color-warning)]">Idle</span>
                     )}
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    <LocationBadge
+                      location={m.location}
+                      entityType={group.name}
+                      entityName={m.Recipe}
+                    />
                   </td>
                 </tr>
               ))}

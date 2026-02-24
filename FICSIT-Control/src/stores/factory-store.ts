@@ -19,6 +19,13 @@ export interface PowerSnapshot {
   capacity: number;
 }
 
+export interface ItemEfficiencyPoint {
+  time: number;
+  prodPercent: number;
+  currentProd: number;
+  maxProd: number;
+}
+
 export interface ProductionSnapshot {
   time: number;
   outputs: Array<{
@@ -54,6 +61,7 @@ interface FactoryState {
   switches: FRMSwitch[];
   unlockedRecipes: FRMRecipe[];
   productionHistory: Record<MachineKey, ProductionSnapshot[]>;
+  itemEfficiencyHistory: Record<string, ItemEfficiencyPoint[]>;
 
   setPowerCircuits: (data: FRMPowerCircuit[]) => void;
   setProductionStats: (data: FRMProdStat[]) => void;
@@ -79,6 +87,7 @@ const initialState = {
   switches: [] as FRMSwitch[],
   unlockedRecipes: [] as FRMRecipe[],
   productionHistory: {} as Record<MachineKey, ProductionSnapshot[]>,
+  itemEfficiencyHistory: {} as Record<string, ItemEfficiencyPoint[]>,
 };
 
 export const useFactoryStore = create<FactoryState>()((set) => ({
@@ -113,7 +122,30 @@ export const useFactoryStore = create<FactoryState>()((set) => ({
         ...(historyChanged ? { powerHistory: history } : {}),
       };
     }),
-  setProductionStats: (data) => set({ productionStats: data }),
+  setProductionStats: (data) =>
+    set((state) => {
+      const now = Date.now();
+      const history = { ...state.itemEfficiencyHistory };
+      let changed = false;
+      for (const stat of data) {
+        if (stat.MaxProd <= 0) continue;
+        const prev = history[stat.Name] ?? [];
+        const last = prev[prev.length - 1];
+        if (last && now - last.time < MIN_SNAP_INTERVAL) continue;
+        const point: ItemEfficiencyPoint = {
+          time: now,
+          prodPercent: stat.ProdPercent,
+          currentProd: stat.CurrentProd,
+          maxProd: stat.MaxProd,
+        };
+        history[stat.Name] = [...prev.slice(-(MAX_HISTORY - 1)), point];
+        changed = true;
+      }
+      return {
+        productionStats: data,
+        ...(changed ? { itemEfficiencyHistory: history } : {}),
+      };
+    }),
   setInventory: (data) => set({ inventory: data }),
   setMachines: (type, data) =>
     set((state) => {

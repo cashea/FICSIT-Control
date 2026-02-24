@@ -43,7 +43,17 @@ export const FRMStorageContainerSchema = z.object({
   Inventory: z.array(FRMInventoryItemSchema),
 });
 
-export const FRMMachineSchema = z.object({
+// FRM API returns lowercase `production` / `ingredients`; normalise to PascalCase
+// so the rest of the codebase can use consistent casing.
+function normaliseMachineKeys(val: unknown): unknown {
+  if (typeof val !== "object" || val === null || Array.isArray(val)) return val;
+  const obj = val as Record<string, unknown>;
+  if ("production" in obj && !("Production" in obj)) obj.Production = obj.production;
+  if ("ingredients" in obj && !("Ingredients" in obj)) obj.Ingredients = obj.ingredients;
+  return obj;
+}
+
+export const FRMMachineSchema = z.preprocess(normaliseMachineKeys, z.object({
   Name: z.string(),
   ClassName: z.string(),
   location: z.object({ x: z.number(), y: z.number(), z: z.number() }).default({ x: 0, y: 0, z: 0 }),
@@ -73,7 +83,7 @@ export const FRMMachineSchema = z.object({
     PowerConsumed: z.number(),
     MaxPowerConsumed: z.number(),
   }).default({ CircuitGroupID: 0, PowerConsumed: 0, MaxPowerConsumed: 0 }),
-}).passthrough();
+}).passthrough());
 
 export const FRMPlayerSchema = z.object({
   Name: z.string(),

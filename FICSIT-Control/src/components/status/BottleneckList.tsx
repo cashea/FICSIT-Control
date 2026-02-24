@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
 import { useFactoryStore } from "../../stores/factory-store";
 import { LocationBadge } from "../assets/LocationBadge";
+import { EfficiencySparkline } from "./EfficiencySparkline";
 import type { FRMMachine } from "../../types";
+import type { ItemEfficiencyPoint } from "../../stores/factory-store";
 
 interface Bottleneck {
   name: string;
@@ -13,7 +16,63 @@ interface Bottleneck {
   machines?: FRMMachine[];
 }
 
-function BottleneckRow({ b }: { b: Bottleneck }) {
+function EfficiencyBadge({
+  efficiency,
+  history,
+}: {
+  efficiency: number;
+  history?: ItemEfficiencyPoint[];
+}) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const badgeRef = useRef<HTMLSpanElement>(null);
+
+  function handleMouseEnter() {
+    if (!history || history.length < 2) return;
+    const rect = badgeRef.current?.getBoundingClientRect();
+    if (rect) {
+      setTooltipPos({
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      });
+    }
+    setShowTooltip(true);
+  }
+
+  return (
+    <>
+      <span
+        ref={badgeRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={() => setShowTooltip(false)}
+        className={`text-sm font-mono cursor-default ${
+          efficiency < 25
+            ? "text-[var(--color-disconnected)]"
+            : "text-[var(--color-warning)]"
+        }`}
+      >
+        {efficiency.toFixed(0)}%
+      </span>
+
+      {showTooltip && history && history.length >= 2 &&
+        createPortal(
+          <div
+            style={{
+              left: tooltipPos.x,
+              top: tooltipPos.y,
+              transform: "translate(-50%, -100%)",
+            }}
+            className="fixed z-50 px-3 py-2 rounded-lg border border-[var(--color-satisfactory-border)] bg-[var(--color-satisfactory-panel)] shadow-lg pointer-events-none"
+          >
+            <EfficiencySparkline points={history} />
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
+
+function BottleneckRow({ b, history }: { b: Bottleneck; history?: ItemEfficiencyPoint[] }) {
   const [expanded, setExpanded] = useState(false);
   const hasMachines = b.machines && b.machines.length > 0;
 
@@ -48,15 +107,10 @@ function BottleneckRow({ b }: { b: Bottleneck }) {
             </div>
           </div>
         </div>
-        <span
-          className={`text-sm font-mono ${
-            b.efficiency < 25
-              ? "text-[var(--color-disconnected)]"
-              : "text-[var(--color-warning)]"
-          }`}
-        >
-          {b.efficiency.toFixed(0)}%
-        </span>
+        <EfficiencyBadge
+          efficiency={b.efficiency}
+          history={b.type === "production" ? history : undefined}
+        />
       </div>
 
       {expanded && b.machines && (
@@ -96,7 +150,7 @@ function BottleneckRow({ b }: { b: Bottleneck }) {
 }
 
 export function BottleneckList() {
-  const { productionStats, machines } = useFactoryStore();
+  const { productionStats, machines, itemEfficiencyHistory } = useFactoryStore();
 
   const bottlenecks: Bottleneck[] = [];
   const allMachines: FRMMachine[] = Object.values(machines).flat();
@@ -175,7 +229,11 @@ export function BottleneckList() {
       </h2>
       <div className="space-y-1">
         {bottlenecks.map((b, i) => (
-          <BottleneckRow key={i} b={b} />
+          <BottleneckRow
+            key={i}
+            b={b}
+            history={b.type === "production" ? itemEfficiencyHistory[b.name] : undefined}
+          />
         ))}
       </div>
     </div>

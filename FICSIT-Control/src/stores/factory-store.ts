@@ -26,6 +26,13 @@ export interface ItemEfficiencyPoint {
   maxProd: number;
 }
 
+export interface MachineEfficiencyPoint {
+  time: number;
+  percent: number;
+  running: number;
+  total: number;
+}
+
 export interface ProductionSnapshot {
   time: number;
   outputs: Array<{
@@ -62,6 +69,7 @@ interface FactoryState {
   unlockedRecipes: FRMRecipe[];
   productionHistory: Record<MachineKey, ProductionSnapshot[]>;
   itemEfficiencyHistory: Record<string, ItemEfficiencyPoint[]>;
+  machineEfficiencyHistory: MachineEfficiencyPoint[];
 
   setPowerCircuits: (data: FRMPowerCircuit[]) => void;
   setProductionStats: (data: FRMProdStat[]) => void;
@@ -88,6 +96,7 @@ const initialState = {
   unlockedRecipes: [] as FRMRecipe[],
   productionHistory: {} as Record<MachineKey, ProductionSnapshot[]>,
   itemEfficiencyHistory: {} as Record<string, ItemEfficiencyPoint[]>,
+  machineEfficiencyHistory: [] as MachineEfficiencyPoint[],
 };
 
 export const useFactoryStore = create<FactoryState>()((set) => ({
@@ -179,9 +188,29 @@ export const useFactoryStore = create<FactoryState>()((set) => ({
         history[key] = [...prev.slice(-(MAX_HISTORY - 1)), snap];
         historyChanged = true;
       }
+      // Compute overall machine efficiency with updated type
+      const updatedMachines = { ...state.machines, [type]: data };
+      const all = Object.values(updatedMachines).flat();
+      const running = all.filter((m) => m.IsProducing).length;
+      const total = all.length;
+      const pct = total > 0 ? (running / total) * 100 : 0;
+
+      const prevEff = state.machineEfficiencyHistory;
+      const lastEff = prevEff[prevEff.length - 1];
+      let effUpdate: Partial<FactoryState> = {};
+      if (!lastEff || now - lastEff.time >= MIN_SNAP_INTERVAL) {
+        effUpdate = {
+          machineEfficiencyHistory: [
+            ...prevEff.slice(-(MAX_HISTORY - 1)),
+            { time: now, percent: pct, running, total },
+          ],
+        };
+      }
+
       return {
-        machines: { ...state.machines, [type]: data },
+        machines: updatedMachines,
         ...(historyChanged ? { productionHistory: history } : {}),
+        ...effUpdate,
       };
     }),
   setGenerators: (data) => set({ generators: data }),
